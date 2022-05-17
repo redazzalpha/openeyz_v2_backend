@@ -23,7 +23,6 @@ public class MainController {
     
     @GetMapping
     public ResponseEntity<Map<String, String>> getAll(HttpServletResponse response) {
-        response.addHeader("Access-Control-Expose-Headers", "Set-Cookie");
         Map<String, String> map = new HashMap<>();
         map.put("Content", "this is content here");
         return new ResponseEntity<>(map, HttpStatus.OK);
