@@ -12,6 +12,7 @@ import com.redazz.openeyz.services.UserService;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -47,6 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.formLogin()
+        .loginPage(Define.LOGIN_PAGE_URL)
         .loginProcessingUrl(Define.SERVER_ACCESS_URL)
         .defaultSuccessUrl(Define.SERVER_BASE_URL)
         .and()
@@ -60,7 +62,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
             return cors;
         });
         http.authorizeHttpRequests()
-        .antMatchers("/login").permitAll()
+        .antMatchers(Define.SERVER_AUTH_FAILURE_URL).permitAll()
         .anyRequest().authenticated();
     }
     @Override
@@ -88,14 +90,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
             setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
                 @Override
                 public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                    String username;username = request.getParameter("username");
+                    Cookie cookie = new Cookie(Define.COOKIE_USERID_NAME, username);
+                    
+                    cookie.setPath(Define.SERVER_ROOT_URL);
+                    cookie.setHttpOnly(true);
+                    
+                    response.addCookie(cookie);
                     response.sendRedirect(Define.SERVER_BASE_URL);
                 }
             });
             setAuthenticationFailureHandler(new SimpleUrlAuthenticationFailureHandler() {
                 @Override
                 public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-                    System.out.println("Login error: " + exception.getMessage());
-                    super.setDefaultFailureUrl("/login?error");
+                    super.setUseForward(true);
+                    super.setDefaultFailureUrl(Define.SERVER_AUTH_FAILURE_URL);
                     super.onAuthenticationFailure(request, response, exception);
                 }
             });
@@ -103,13 +112,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
         }
         @Override
         public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-
             String username, lname, name, password;
             username = request.getParameter("username");
             password = request.getParameter("password");
             lname = request.getParameter("lname");
             name = request.getParameter("name");
-
+            
             try {
                 us.save(new Users(username, lname, name, password));
                 us.addRoleToUser(username, RoleEnum.USER);

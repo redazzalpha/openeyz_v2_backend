@@ -22,8 +22,8 @@ public class OpeneyzApplication {
     @Bean
     public CommandLineRunner initCfg() {
         return args -> {
-            Users max = new Users("max@gmail.com", "Dubois", "Max", "1234");
-            Users alice = new Users("alice@gmail.com", "Dubois", "alice", "1234");
+            Users max = new Users("max@gmail.com", "Dubois", "Max", "1234abdcL?");
+            Users alice = new Users("alice@gmail.com", "Dubois", "alice", "4321LpTZ28!");
             us.save(max);
             us.save(alice);
 

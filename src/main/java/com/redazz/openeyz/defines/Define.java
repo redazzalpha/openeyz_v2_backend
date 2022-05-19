@@ -12,9 +12,12 @@ public class Define {
     public static final String SERVER_ROOT_URL = "/";
     public static final String SERVER_ACCESS_URL = "/api/access";
     public static final String SERVER_BASE_URL = "/api";
+    public static final String SERVER_AUTH_FAILURE_URL = "/api/auth-failure";
     public static final String SERVER_ROOT_ASSETS_URL = "assets";
     public static final String SERVER_UPLOAD_IMAGE_URL = "/api/image";
     public static final String SERVER_DOWNLOAD_IMAGE_URL = "/api/image?img=";
+    
+    public static final String LOGIN_PAGE_URL = "http://localhost:8080/#/access";
     
     public static final String AUTH_USER_QUERY = "select username, password, state from users where username = ?";
     public static final String AUTH_AUTHORITIES_QUERY = "select username, role from user_roles where username = ?";
@@ -29,4 +32,10 @@ public class Define {
     public static final String PAGE_HOME_URL = "http://localhost:8080/app";
     public static final String PAGE_ACCESS_URL = "http://localhost:8080/app/access";
     public static final String PAGE_COMMENT_URL = "http://localhost:8080/app/comment";
+    
+    public static final String MESSAGE_ERROR_USERNAME = "bad credentials user was not found";
+    public static final String MESSAGE_ERROR_PASSWORD = "bad credentials check password";
+//    public static final String MESSAGE_ERROR_PASSWORD = "bad credentials - password does not match";
+    
+    
 }
