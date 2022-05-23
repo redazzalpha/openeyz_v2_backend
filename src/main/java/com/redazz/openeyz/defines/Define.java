@@ -10,8 +10,8 @@ package com.redazz.openeyz.defines;
  */
 public class Define {
     public static final String SERVER_ROOT_URL = "/";
-    public static final String SERVER_ACCESS_URL = "/api/access";
     public static final String SERVER_BASE_URL = "/api";
+    public static final String SERVER_ACCESS_URL = "/api/access";
     public static final String SERVER_AUTH_FAILURE_URL = "/api/auth-failure";
     public static final String SERVER_UPLOAD_IMAGE_URL = "/api/image";
     public static final String SERVER_DOWNLOAD_IMAGE_URL = "http://localhost:8081/api/image?img=";
@@ -28,10 +28,7 @@ public class Define {
 
     public static final int MULTIPART_UPLOAD_SIZE = 1000000;
     
-    public static final String PAGE_ROOT_URL = "http://localhost:8080/";
-    public static final String PAGE_HOME_URL = "http://localhost:8080/app";
     public static final String PAGE_ACCESS_URL = "http://localhost:8080/app/access";
-    public static final String PAGE_COMMENT_URL = "http://localhost:8080/app/comment";
     
     public static final String MESSAGE_ERROR_USERNAME = "bad credentials user was not found";
     public static final String MESSAGE_ERROR_PASSWORD = "bad credentials check password";

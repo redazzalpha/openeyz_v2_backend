@@ -4,6 +4,7 @@
  */
 package com.redazz.openeyz.controllers;
 
+import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.models.Post;
 import com.redazz.openeyz.models.Users;
@@ -18,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
@@ -41,65 +41,96 @@ public class MainController {
 
     @Autowired UserService us;
     @Autowired PostService ps;
+    @Autowired JwTokenUtils jwt;
 
     @GetMapping
-    public ResponseEntity<String> authSuccess(HttpServletResponse response) {
-        Map<String, String> json = new HashMap<>();
-        return new ResponseEntity<>(Define.MESSAGE_AUTH_SUCCESS, HttpStatus.OK);
+    public ResponseEntity<String> authSuccess(@CookieValue(required = true) Cookie USERID) {
+        String token = jwt.encode(USERID.getValue());
+        return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
     @PostMapping("auth-failure")
     public ResponseEntity<String> authError(HttpServletRequest request) {
         String username = request.getParameter("username");
         String message;
+        HttpStatus status;
         try {
             us.findById(username).get();
             message = Define.MESSAGE_ERROR_PASSWORD;
+            status = HttpStatus.UNAUTHORIZED;
         }
         catch (Exception e) {
             message = Define.MESSAGE_ERROR_USERNAME;
+            status = HttpStatus.NOT_FOUND;
         }
 
-        return new ResponseEntity<>(message, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(message, status);
     }
-
+    
     @GetMapping("publication")
     public ResponseEntity<List<Post>> getAllPost() {
-
-        return new ResponseEntity<>(ps.findAll(), HttpStatus.OK);
+        List<Post> posts;
+        HttpStatus status;
+        
+        try {
+            posts = ps.findAll();
+            status = HttpStatus.OK;
+        }
+        catch(Exception e) {
+            posts = null;
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return new ResponseEntity<>(posts, status);
     }
     @PostMapping("publication")
-    public ResponseEntity<String> test(@RequestParam String data, @CookieValue Cookie USERID) {
+    public ResponseEntity<String> postPublication(@RequestParam(required = true) String data, @CookieValue(required = true) Cookie USERID) {
         String username = USERID.getValue();
         String message;
+        HttpStatus status;
         try {
             Users user = us.findById(username).get();
             ps.save(new Post(data, user));
             message = Define.MESSAGE_POST_SUCCESS;
+            status = HttpStatus.CREATED;
         }
         catch (Exception e) {
             message = Define.MESSAGE_ERROR_POST;
-//            json.put("message", e.getMessage());
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
-        return new ResponseEntity<>(message, HttpStatus.OK);
+        return new ResponseEntity<>(message, status);
     }
     
     @GetMapping("image")
     public ResponseEntity<ByteArrayResource> downloadImage(@RequestParam(required = true) String img) throws IOException {
-        final ByteArrayResource image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.SERVER_ROOT_ASSETS_DIRECTORY + "/" + img)));
-        return new ResponseEntity<>(image, HttpStatus.OK);
+        ByteArrayResource image;
+        HttpStatus status;
+        try {
+            image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.SERVER_ROOT_ASSETS_DIRECTORY + "/" + img)));
+            status = HttpStatus.OK;
+        }
+        catch(Exception e) {
+            image = null;
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return new ResponseEntity<>(image, status);
     }
     @PostMapping("image")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(name = "file", required = true) MultipartFile file) throws IOException {
-
-        String filename = file.getOriginalFilename();
-        File dest = new File(Define.SERVER_ROOT_ASSETS_DIRECTORY + "/" + filename);
         Map<String, String> json = new HashMap<>();
+        HttpStatus status;
+        try {
+            String filename = file.getOriginalFilename();
+            File dest = new File(Define.SERVER_ROOT_ASSETS_DIRECTORY + "/" + filename);
 
-        file.transferTo(dest);
-        //must return json object type with url according CKEditor
-        json.put("url", Define.SERVER_DOWNLOAD_IMAGE_URL + filename);
+            file.transferTo(dest);
+            //must return json object type with url according CKEditor
+            json.put("url", Define.SERVER_DOWNLOAD_IMAGE_URL + filename);
+            status = HttpStatus.CREATED;
 
-        return new ResponseEntity<>(json, HttpStatus.OK);
-    }
+        }
+        catch(Exception e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return new ResponseEntity<>(json, status);
+    }    
 }

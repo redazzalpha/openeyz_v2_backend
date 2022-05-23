@@ -5,11 +5,15 @@
 package com.redazz.openeyz.security;
 
 import com.redazz.openeyz.beans.Encoder;
+import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.enums.RoleEnum;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import java.io.IOException;
+import static java.lang.Long.decode;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -17,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -39,42 +44,46 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
  */
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter{
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired UserService us;
     @Autowired DataSource dataSource;
     @Autowired Encoder encoder;
+    @Autowired JwTokenUtils jwt;
+
+    @Value("${jwt.secret}")
+    private String kkk;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.formLogin()
-        .loginPage(Define.LOGIN_PAGE_URL)
-        .loginProcessingUrl(Define.SERVER_ACCESS_URL)
-        .defaultSuccessUrl(Define.SERVER_BASE_URL)
-        .and()
-        .addFilter(new AuthenticationFilter())
-        .cors().configurationSource((request) -> {
-            CorsConfiguration cors = new CorsConfiguration();
-            cors.setAllowCredentials(true);
-            cors.setAllowedHeaders(List.of("*"));
-            cors.setAllowedOrigins(List.of("http://localhost:8080", "http://192.168.0.20:8080"));
-            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            return cors;
-        });
+            .loginPage(Define.LOGIN_PAGE_URL)
+            .loginProcessingUrl(Define.SERVER_ACCESS_URL)
+            .defaultSuccessUrl(Define.SERVER_BASE_URL)
+            .and()
+            .addFilter(new AuthenticationFilter())
+            .cors().configurationSource((request) -> {
+                CorsConfiguration cors = new CorsConfiguration();
+                cors.setAllowCredentials(true);
+                cors.setAllowedHeaders(List.of("*"));
+                cors.setAllowedOrigins(List.of("http://localhost:8080", "http://192.168.0.20:8080"));
+                cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                return cors;
+            });
         http.authorizeHttpRequests()
-        .antMatchers(Define.SERVER_AUTH_FAILURE_URL).permitAll()
-        .anyRequest().authenticated();
+            .antMatchers(Define.SERVER_AUTH_FAILURE_URL).permitAll()
+            .anyRequest().authenticated();
     }
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.jdbcAuthentication()
-        .dataSource(dataSource)
-        .usersByUsernameQuery(Define.AUTH_USER_QUERY)
-        .authoritiesByUsernameQuery(Define.AUTH_AUTHORITIES_QUERY)
-        .rolePrefix(Define.AUTH_ROLE_PREFIX)
-        .passwordEncoder(encoder);
+            .dataSource(dataSource)
+            .usersByUsernameQuery(Define.AUTH_USER_QUERY)
+            .authoritiesByUsernameQuery(Define.AUTH_AUTHORITIES_QUERY)
+            .rolePrefix(Define.AUTH_ROLE_PREFIX)
+            .passwordEncoder(encoder);
     }
-    
+
     @Bean
     public MultipartResolver multipartResolver() {
         CommonsMultipartResolver cmr = new CommonsMultipartResolver();
@@ -90,9 +99,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
             setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
                 @Override
                 public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                    String username;username = request.getParameter("username");
+                    String username;
+                    username = request.getParameter("username");
                     Cookie cookie = new Cookie(Define.COOKIE_USERID_NAME, username);
-                    
+
                     cookie.setPath(Define.SERVER_ROOT_URL);
                     cookie.setHttpOnly(true);
                     
@@ -117,7 +127,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
             password = request.getParameter("password");
             lname = request.getParameter("lname");
             name = request.getParameter("name");
-            
+
             try {
                 us.save(new Users(username, lname, name, password));
                 us.addRoleToUser(username, RoleEnum.USER);
