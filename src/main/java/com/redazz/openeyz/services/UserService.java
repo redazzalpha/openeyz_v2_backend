@@ -55,10 +55,20 @@ public class UserService implements Services<Users, String> {
         ur.delete(entity);
     }
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     public Tuple getCurrentUser(String id) {
         return ur.getCurrentUser(id);
     }
-    
     // methods
     public void addRoleToUser(String username, RoleEnum roleName) {
         Users user = ur.findById(username).get();

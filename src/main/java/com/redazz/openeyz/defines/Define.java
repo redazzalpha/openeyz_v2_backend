@@ -13,9 +13,9 @@ public class Define {
     public static final String SERVER_ACCESS_URL = "/api/access";
     public static final String SERVER_BASE_URL = "/api";
     public static final String SERVER_AUTH_FAILURE_URL = "/api/auth-failure";
-    public static final String SERVER_ROOT_ASSETS_URL = "assets";
     public static final String SERVER_UPLOAD_IMAGE_URL = "/api/image";
-    public static final String SERVER_DOWNLOAD_IMAGE_URL = "/api/image?img=";
+    public static final String SERVER_DOWNLOAD_IMAGE_URL = "http://localhost:8081/api/image?img=";
+    public static final String SERVER_ROOT_ASSETS_DIRECTORY = "assets";
     
     public static final String LOGIN_PAGE_URL = "http://localhost:8080/#/access";
     
@@ -35,7 +35,10 @@ public class Define {
     
     public static final String MESSAGE_ERROR_USERNAME = "bad credentials user was not found";
     public static final String MESSAGE_ERROR_PASSWORD = "bad credentials check password";
-//    public static final String MESSAGE_ERROR_PASSWORD = "bad credentials - password does not match";
+    public static final String MESSAGE_ERROR_POST = "An error has occurred when try to post publication";
+
+    public static final String MESSAGE_AUTH_SUCCESS = "Auth success";
+    public static final String MESSAGE_POST_SUCCESS = "Publication successfully posted";
     
     
 }
