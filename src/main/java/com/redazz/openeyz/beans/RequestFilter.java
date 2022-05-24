@@ -5,10 +5,6 @@
 package com.redazz.openeyz.beans;
 
 import com.redazz.openeyz.defines.Define;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -33,12 +29,13 @@ public class RequestFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         
+        System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz " + req.getMethod());
         if(!req.getRequestURI().equals(Define.SERVER_BASE_URL)) {
             String token = req.getHeader("Authorization").split("Bearer ")[1];
             
+            
             try {
-                Jws<Claims> jws =  jwt.decode(token);
-                System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz " + jws.getBody());
+                jwt.decode(token);
             }
             catch(Exception e) {
                 res.sendError(401, e.getMessage());

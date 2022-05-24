@@ -17,6 +17,7 @@ public class Define {
     public static final String SERVER_DOWNLOAD_IMAGE_URL = "http://localhost:8081/api/image?img=";
     public static final String SERVER_ROOT_ASSETS_DIRECTORY = "assets";
     
+    public static final String ALLOWED_ORIGIN_URL = "http://localhost:8080";
     public static final String LOGIN_PAGE_URL = "http://localhost:8080/#/access";
     
     public static final String AUTH_USER_QUERY = "select username, password, state from users where username = ?";

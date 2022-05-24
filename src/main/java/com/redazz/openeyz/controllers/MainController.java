@@ -63,7 +63,6 @@ public class MainController {
             message = Define.MESSAGE_ERROR_USERNAME;
             status = HttpStatus.NOT_FOUND;
         }
-
         return new ResponseEntity<>(message, status);
     }
     
@@ -108,7 +107,7 @@ public class MainController {
             image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.SERVER_ROOT_ASSETS_DIRECTORY + "/" + img)));
             status = HttpStatus.OK;
         }
-        catch(Exception e) {
+        catch(IOException e) {
             image = null;
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
@@ -126,9 +125,8 @@ public class MainController {
             //must return json object type with url according CKEditor
             json.put("url", Define.SERVER_DOWNLOAD_IMAGE_URL + filename);
             status = HttpStatus.CREATED;
-
         }
-        catch(Exception e) {
+        catch(IOException | IllegalStateException  e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
         return new ResponseEntity<>(json, status);

@@ -4,19 +4,15 @@
  */
 package com.redazz.openeyz.security;
 
+import com.redazz.openeyz.beans.AuthFailure;
+import com.redazz.openeyz.beans.AuthSuccess;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.enums.RoleEnum;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import java.io.IOException;
-import static java.lang.Long.decode;
 import java.util.List;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -30,8 +26,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -49,6 +43,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired DataSource dataSource;
     @Autowired Encoder encoder;
     @Autowired JwTokenUtils jwt;
+    @Autowired AuthSuccess authSuccess;
+    @Autowired AuthFailure authFailure;
 
     @Value("${jwt.secret}")
     private String kkk;
@@ -61,13 +57,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .loginProcessingUrl(Define.SERVER_ACCESS_URL)
             .defaultSuccessUrl(Define.SERVER_BASE_URL)
             .and()
-            .addFilter(new AuthenticationFilter())
+            .addFilter(new AuthFilter())
             .cors().configurationSource((request) -> {
                 CorsConfiguration cors = new CorsConfiguration();
                 cors.setAllowCredentials(true);
                 cors.setAllowedHeaders(List.of("*"));
-                cors.setAllowedOrigins(List.of("http://localhost:8080", "http://192.168.0.20:8080"));
-                cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL));
+                cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
                 return cors;
             });
         http.authorizeHttpRequests()
@@ -91,33 +87,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return cmr;
     }
 
-    class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-        public AuthenticationFilter() throws Exception {
+    class AuthFilter extends UsernamePasswordAuthenticationFilter {
+        public AuthFilter() throws Exception {
             setUsernameParameter("username");
             setPasswordParameter("password");
             setAuthenticationManager(authenticationManager());
-            setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
-                @Override
-                public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                    String username;
-                    username = request.getParameter("username");
-                    Cookie cookie = new Cookie(Define.COOKIE_USERID_NAME, username);
-
-                    cookie.setPath(Define.SERVER_ROOT_URL);
-                    cookie.setHttpOnly(true);
-                    
-                    response.addCookie(cookie);
-                    response.sendRedirect(Define.SERVER_BASE_URL);
-                }
-            });
-            setAuthenticationFailureHandler(new SimpleUrlAuthenticationFailureHandler() {
-                @Override
-                public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-                    super.setUseForward(true);
-                    super.setDefaultFailureUrl(Define.SERVER_AUTH_FAILURE_URL);
-                    super.onAuthenticationFailure(request, response, exception);
-                }
-            });
+            setAuthenticationSuccessHandler(authSuccess);
+            setAuthenticationFailureHandler(authFailure);
             super.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(Define.SERVER_ACCESS_URL, "POST"));
         }
         @Override
