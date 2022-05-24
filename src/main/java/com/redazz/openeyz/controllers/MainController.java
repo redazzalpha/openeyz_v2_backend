@@ -114,7 +114,7 @@ public class MainController {
         return new ResponseEntity<>(image, status);
     }
     @PostMapping("image")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(name = "file", required = true) MultipartFile file) throws IOException {
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(name = "upload", required = true) MultipartFile file) throws IOException {
         Map<String, String> json = new HashMap<>();
         HttpStatus status;
         try {
