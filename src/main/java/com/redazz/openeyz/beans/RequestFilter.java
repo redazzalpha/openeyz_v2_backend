@@ -32,11 +32,8 @@ public class RequestFilter implements Filter {
         boolean accessBase = req.getRequestURI().equals(Define.SERVER_BASE_URL);
         boolean accessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.SERVER_UPLOAD_IMAGE_URL) && req.getMethod().equals("GET");
         
-        
         if( !(accessBase || accessDownloadImg) ){
             String token = req.getHeader("Authorization").split("Bearer ")[1];
-            
-            
             try {
                 jwt.decode(token);
             }

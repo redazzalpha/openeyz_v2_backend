@@ -122,7 +122,7 @@ public class MainController {
             File dest = new File(Define.SERVER_ROOT_ASSETS_DIRECTORY + "/" + filename);
 
             file.transferTo(dest);
-            //must return json object type with url according CKEditor
+            //must return json object type with url according CKEditor config
             json.put("url", Define.SERVER_DOWNLOAD_IMAGE_URL + filename);
             status = HttpStatus.CREATED;
         }
