@@ -14,9 +14,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.Tuple;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,17 +41,20 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("api")
 public class MainController {
 
-    @Autowired UserService us;
-    @Autowired PostService ps;
-    @Autowired JwTokenUtils jwt;
+    @Autowired
+    UserService us;
+    @Autowired
+    PostService ps;
+    @Autowired
+    JwTokenUtils jwt;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
-        String username =  USERID.getValue();
+        String username = USERID.getValue();
         Map<String, Object> json = new HashMap<>();
         Users user = us.findById(username).get();
         String token = jwt.encode(username);
-        
+
         json.put("token", token);
         json.put("user", user);
         return new ResponseEntity<>(json, HttpStatus.OK);
@@ -71,21 +76,23 @@ public class MainController {
         }
         return new ResponseEntity<>(message, status);
     }
-    
+
     @GetMapping("publication")
-    public ResponseEntity<List<Post>> getAllPost() {
-        List<Post> posts;
+    public ResponseEntity<List<Object>> getAllPost() {
+        Map<String, Object> json = new HashMap<>();
+        List<Object> list = new ArrayList<>();
         HttpStatus status;
-        
         try {
-            posts = ps.findAll();
+            for (Tuple t : ps.getAll()) {
+                json.put("post", t.get(0));
+                json.put("creation", t.get(1));
+                list.add(json);
+                json = new HashMap<>();
+            }
             status = HttpStatus.OK;
         }
-        catch(Exception e) {
-            posts = null;
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        return new ResponseEntity<>(posts, status);
+        catch (Exception e) { status = HttpStatus.INTERNAL_SERVER_ERROR; }
+        return new ResponseEntity<>(list, status);
     }
     @PostMapping("publication")
     public ResponseEntity<String> postPublication(@RequestParam(required = true) String data, @CookieValue(required = true) Cookie USERID) {
@@ -104,7 +111,7 @@ public class MainController {
         }
         return new ResponseEntity<>(message, status);
     }
-    
+
     @GetMapping("image")
     public ResponseEntity<ByteArrayResource> downloadImage(@RequestParam(required = true) String img) throws IOException {
         ByteArrayResource image;
@@ -113,7 +120,7 @@ public class MainController {
             image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.ASSETS_DIRECTORY + "/" + img)));
             status = HttpStatus.OK;
         }
-        catch(IOException e) {
+        catch (IOException e) {
             image = null;
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
@@ -132,9 +139,7 @@ public class MainController {
             json.put("url", Define.DOWNLOAD_IMAGE_URL + filename);
             status = HttpStatus.CREATED;
         }
-        catch(IOException | IllegalStateException  e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
+        catch (IOException | IllegalStateException e) { status = HttpStatus.INTERNAL_SERVER_ERROR; }
         return new ResponseEntity<>(json, status);
-    }    
+    }
 }
