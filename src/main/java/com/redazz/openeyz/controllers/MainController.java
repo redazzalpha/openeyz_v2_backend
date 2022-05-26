@@ -44,9 +44,15 @@ public class MainController {
     @Autowired JwTokenUtils jwt;
 
     @GetMapping
-    public ResponseEntity<String> authSuccess(@CookieValue(required = true) Cookie USERID) {
-        String token = jwt.encode(USERID.getValue());
-        return new ResponseEntity<>(token, HttpStatus.OK);
+    public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
+        String username =  USERID.getValue();
+        Map<String, Object> json = new HashMap<>();
+        Users user = us.findById(username).get();
+        String token = jwt.encode(username);
+        
+        json.put("token", token);
+        json.put("user", user);
+        return new ResponseEntity<>(json, HttpStatus.OK);
     }
 
     @PostMapping("auth-failure")
@@ -104,7 +110,7 @@ public class MainController {
         ByteArrayResource image;
         HttpStatus status;
         try {
-            image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.SERVER_ROOT_ASSETS_DIRECTORY + "/" + img)));
+            image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.ASSETS_DIRECTORY + "/" + img)));
             status = HttpStatus.OK;
         }
         catch(IOException e) {
@@ -119,11 +125,11 @@ public class MainController {
         HttpStatus status;
         try {
             String filename = file.getOriginalFilename();
-            File dest = new File(Define.SERVER_ROOT_ASSETS_DIRECTORY + "/" + filename);
+            File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
 
             file.transferTo(dest);
             //must return json object type with url according CKEditor config
-            json.put("url", Define.SERVER_DOWNLOAD_IMAGE_URL + filename);
+            json.put("url", Define.DOWNLOAD_IMAGE_URL + filename);
             status = HttpStatus.CREATED;
         }
         catch(IOException | IllegalStateException  e) {

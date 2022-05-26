@@ -22,7 +22,7 @@ public class AuthFailure extends SimpleUrlAuthenticationFailureHandler {
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         super.setUseForward(true);
-        super.setDefaultFailureUrl(Define.SERVER_AUTH_FAILURE_URL);
+        super.setDefaultFailureUrl(Define.AUTH_FAILURE_URL);
         super.onAuthenticationFailure(request, response, exception);
     }
 }

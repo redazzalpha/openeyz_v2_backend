@@ -25,10 +25,10 @@ public class AuthSuccess implements AuthenticationSuccessHandler{
         String username = request.getParameter("username");
         Cookie cookie = new Cookie(Define.COOKIE_USERID_NAME, username);
 
-        cookie.setPath(Define.SERVER_ROOT_URL);
+        cookie.setPath(Define.ROOT_URL);
         cookie.setHttpOnly(true);
 
         response.addCookie(cookie);
-        response.sendRedirect(Define.SERVER_BASE_URL);
+        response.sendRedirect(Define.ROOT_URL);
     }
 }

@@ -29,8 +29,8 @@ public class RequestFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         
-        boolean accessBase = req.getRequestURI().equals(Define.SERVER_BASE_URL);
-        boolean accessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.SERVER_UPLOAD_IMAGE_URL) && req.getMethod().equals("GET");
+        boolean accessBase = req.getRequestURI().equals(Define.ROOT_URL);
+        boolean accessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.UPLOAD_IMAGE_URL) && req.getMethod().equals("GET");
         
         if( !(accessBase || accessDownloadImg) ){
             String token = req.getHeader("Authorization").split("Bearer ")[1];

@@ -54,8 +54,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.formLogin()
             .loginPage(Define.LOGIN_PAGE_URL)
-            .loginProcessingUrl(Define.SERVER_ACCESS_URL)
-            .defaultSuccessUrl(Define.SERVER_BASE_URL)
+            .loginProcessingUrl(Define.ACCESS_URL)
+            .defaultSuccessUrl(Define.ROOT_URL)
             .and()
             .addFilter(new AuthFilter())
             .cors().configurationSource((request) -> {
@@ -67,7 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 return cors;
             });
         http.authorizeHttpRequests()
-            .antMatchers(Define.SERVER_AUTH_FAILURE_URL).permitAll()
+            .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
             .anyRequest().authenticated();
     }
     @Override
@@ -94,7 +94,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             setAuthenticationManager(authenticationManager());
             setAuthenticationSuccessHandler(authSuccess);
             setAuthenticationFailureHandler(authFailure);
-            super.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(Define.SERVER_ACCESS_URL, "POST"));
+            super.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher(Define.ACCESS_URL, "POST"));
         }
         @Override
         public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
