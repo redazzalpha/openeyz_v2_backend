@@ -123,7 +123,7 @@ public class MainController {
     }
 
     @GetMapping("comment")
-    public ResponseEntity<List<Object>> getAllComment(@RequestParam(required = true) long postId) {
+    public ResponseEntity<List<Object>> getAllComment(@RequestParam(required = true, name = "payload") long postId) {
         Map<String, Object> json = new HashMap<>();
         List<Object> list = new ArrayList<>();
         HttpStatus status;
