@@ -46,15 +46,7 @@ public class PostService implements Services<Post, Long> {
         pr.delete(entity);
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    // custom services
     public List<Tuple> getAll() {
         return pr.getAll();
     }

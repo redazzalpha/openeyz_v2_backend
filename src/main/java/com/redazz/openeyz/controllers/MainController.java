@@ -6,8 +6,10 @@ package com.redazz.openeyz.controllers;
 
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.defines.Define;
+import com.redazz.openeyz.models.Comment;
 import com.redazz.openeyz.models.Post;
 import com.redazz.openeyz.models.Users;
+import com.redazz.openeyz.services.CommentService;
 import com.redazz.openeyz.services.PostService;
 import com.redazz.openeyz.services.UserService;
 import java.io.File;
@@ -21,6 +23,8 @@ import java.util.Map;
 import javax.persistence.Tuple;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
@@ -45,6 +49,8 @@ public class MainController {
     UserService us;
     @Autowired
     PostService ps;
+    @Autowired
+    CommentService cs;
     @Autowired
     JwTokenUtils jwt;
 
@@ -82,6 +88,7 @@ public class MainController {
         Map<String, Object> json = new HashMap<>();
         List<Object> list = new ArrayList<>();
         HttpStatus status;
+
         try {
             for (Tuple t : ps.getAll()) {
                 json.put("post", t.get(0));
@@ -91,17 +98,20 @@ public class MainController {
             }
             status = HttpStatus.OK;
         }
-        catch (Exception e) { status = HttpStatus.INTERNAL_SERVER_ERROR; }
+        catch (Exception e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
         return new ResponseEntity<>(list, status);
     }
+    @Transactional
     @PostMapping("publication")
-    public ResponseEntity<String> postPublication(@RequestParam(required = true) String data, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post, @CookieValue(required = true) Cookie USERID) {
         String username = USERID.getValue();
         String message;
         HttpStatus status;
         try {
             Users user = us.findById(username).get();
-            ps.save(new Post(data, user));
+            ps.save(new Post(post, user));
             message = Define.MESSAGE_POST_SUCCESS;
             status = HttpStatus.CREATED;
         }
@@ -110,6 +120,37 @@ public class MainController {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
         return new ResponseEntity<>(message, status);
+    }
+
+    @GetMapping("comment")
+    public ResponseEntity<List<Object>> getAllComment(@RequestParam(required = true) long postId) {
+        Map<String, Object> json = new HashMap<>();
+        List<Object> list = new ArrayList<>();
+        HttpStatus status;
+
+        try {
+            for (Tuple t : cs.getAllFromPost(postId)) {
+                json.put("comment", t.get(0));
+                json.put("creation", t.get(1));
+                list.add(json);
+                json = new HashMap<>();
+            }
+            status = HttpStatus.OK;
+        }
+        catch (Exception e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return new ResponseEntity<>(list, status);
+    }
+    @Transactional
+    @PostMapping("comment")
+    public ResponseEntity<String> postComment(@RequestParam(required = true) String comment, @RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
+        Post post = ps.findById(postId).get();
+        Users user = us.findById(USERID.getValue()).get();
+        Comment com = new Comment(comment, post, user);
+        cs.save(com);
+        
+        return new ResponseEntity<>("Comment successfully created", HttpStatus.CREATED);
     }
 
     @GetMapping("image")
@@ -139,7 +180,9 @@ public class MainController {
             json.put("url", Define.DOWNLOAD_IMAGE_URL + filename);
             status = HttpStatus.CREATED;
         }
-        catch (IOException | IllegalStateException e) { status = HttpStatus.INTERNAL_SERVER_ERROR; }
+        catch (IOException | IllegalStateException e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
         return new ResponseEntity<>(json, status);
     }
 }

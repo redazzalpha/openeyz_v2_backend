@@ -46,8 +46,9 @@ public class CommentService implements Services<Comment, Long>{
         cr.delete(entity);
     }
     
-    public List<Tuple> getComments(long postId) {
-        return cr.getComments(postId);
+    // custom services
+    public List<Tuple> getAllFromPost(long postId) {
+        return cr.getAllFromPost(postId);
     }
     
     public int getcount(long postId) {
