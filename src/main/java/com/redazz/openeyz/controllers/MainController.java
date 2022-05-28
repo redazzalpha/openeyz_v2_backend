@@ -24,7 +24,6 @@ import javax.persistence.Tuple;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
@@ -91,8 +90,11 @@ public class MainController {
 
         try {
             for (Tuple t : ps.getAll()) {
+                
+                
                 json.put("post", t.get(0));
                 json.put("creation", t.get(1));
+                json.put("commentCount", t.get(2));
                 list.add(json);
                 json = new HashMap<>();
             }

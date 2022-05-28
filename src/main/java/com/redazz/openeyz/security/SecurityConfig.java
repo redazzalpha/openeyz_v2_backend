@@ -39,12 +39,18 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    @Autowired UserService us;
-    @Autowired DataSource dataSource;
-    @Autowired Encoder encoder;
-    @Autowired JwTokenUtils jwt;
-    @Autowired AuthSuccess authSuccess;
-    @Autowired AuthFailure authFailure;
+    @Autowired
+    UserService us;
+    @Autowired
+    DataSource dataSource;
+    @Autowired
+    Encoder encoder;
+    @Autowired
+    JwTokenUtils jwt;
+    @Autowired
+    AuthSuccess authSuccess;
+    @Autowired
+    AuthFailure authFailure;
 
     @Value("${jwt.secret}")
     private String kkk;
@@ -53,31 +59,33 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.formLogin()
-            .loginPage(Define.LOGIN_PAGE_URL)
-            .loginProcessingUrl(Define.ACCESS_URL)
-            .defaultSuccessUrl(Define.ROOT_URL)
-            .and()
-            .addFilter(new AuthFilter())
-            .cors().configurationSource((request) -> {
-                CorsConfiguration cors = new CorsConfiguration();
-                cors.setAllowCredentials(true);
-                cors.setAllowedHeaders(List.of("*"));
-                cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL));
-                cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
-                return cors;
-            });
+                .loginPage(Define.LOGIN_PAGE_URL)
+                .loginProcessingUrl(Define.ACCESS_URL)
+                .defaultSuccessUrl(Define.ROOT_URL)
+                .and()
+                .logout()
+                .and()
+                .addFilter(new AuthFilter())
+                .cors().configurationSource((request) -> {
+                    CorsConfiguration cors = new CorsConfiguration();
+                    cors.setAllowCredentials(true);
+                    cors.setAllowedHeaders(List.of("*"));
+                    cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL));
+                    cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+                    return cors;
+                });
         http.authorizeHttpRequests()
-            .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
-            .anyRequest().authenticated();
+                .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
+                .anyRequest().authenticated();
     }
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.jdbcAuthentication()
-            .dataSource(dataSource)
-            .usersByUsernameQuery(Define.AUTH_USER_QUERY)
-            .authoritiesByUsernameQuery(Define.AUTH_AUTHORITIES_QUERY)
-            .rolePrefix(Define.AUTH_ROLE_PREFIX)
-            .passwordEncoder(encoder);
+                .dataSource(dataSource)
+                .usersByUsernameQuery(Define.AUTH_USER_QUERY)
+                .authoritiesByUsernameQuery(Define.AUTH_AUTHORITIES_QUERY)
+                .rolePrefix(Define.AUTH_ROLE_PREFIX)
+                .passwordEncoder(encoder);
     }
 
     @Bean
