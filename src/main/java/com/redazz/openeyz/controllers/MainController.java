@@ -7,9 +7,11 @@ package com.redazz.openeyz.controllers;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.models.Comment;
+import com.redazz.openeyz.models.Likes;
 import com.redazz.openeyz.models.Post;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.CommentService;
+import com.redazz.openeyz.services.LikesService;
 import com.redazz.openeyz.services.PostService;
 import com.redazz.openeyz.services.UserService;
 import java.io.File;
@@ -51,6 +53,8 @@ public class MainController {
     @Autowired
     CommentService cs;
     @Autowired
+    LikesService ls;
+    @Autowired
     JwTokenUtils jwt;
 
     @GetMapping
@@ -83,20 +87,25 @@ public class MainController {
     }
 
     @GetMapping("publication")
-    public ResponseEntity<List<Object>> getAllPost() {
-        Map<String, Object> json = new HashMap<>();
+    public ResponseEntity<List<Object>> getAllPost(@CookieValue(required = true) Cookie USERID) {
         List<Object> list = new ArrayList<>();
+        Post post;
+        boolean userLike;
         HttpStatus status;
 
         try {
             for (Tuple t : ps.getAll()) {
-                
-                
-                json.put("post", t.get(0));
+                Map<String, Object> json = new HashMap<>();
+                post = (Post) (t.get(0));
+                userLike = ls.getUserlikePost(post.getId(), USERID.getValue());
+
+                json.put("post", post);
                 json.put("creation", t.get(1));
                 json.put("commentCount", t.get(2));
+                json.put("likeCount", t.get(3));
+                json.put("userLike", userLike);
+
                 list.add(json);
-                json = new HashMap<>();
             }
             status = HttpStatus.OK;
         }
@@ -125,7 +134,7 @@ public class MainController {
     }
 
     @GetMapping("comment")
-    public ResponseEntity<List<Object>> getAllComment(@RequestParam(required = true, name = "payload") long postId) {
+    public ResponseEntity<List<Object>> getAllComment(@RequestParam(required = true) long postId) {
         Map<String, Object> json = new HashMap<>();
         List<Object> list = new ArrayList<>();
         HttpStatus status;
@@ -151,8 +160,19 @@ public class MainController {
         Users user = us.findById(USERID.getValue()).get();
         Comment com = new Comment(comment, post, user);
         cs.save(com);
-        
+
         return new ResponseEntity<>("Comment successfully created", HttpStatus.CREATED);
+    }
+
+    @Transactional
+    @PostMapping("like")
+    public ResponseEntity<String> postLike(@RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
+        Users author = us.findById(USERID.getValue()).get();
+        Post post = ps.findById(postId).get();
+        Likes like = new Likes(post, author);
+
+        ls.save(like);
+        return new ResponseEntity<>("Like successfully added", HttpStatus.CREATED);
     }
 
     @GetMapping("image")
@@ -170,7 +190,7 @@ public class MainController {
         return new ResponseEntity<>(image, status);
     }
     @PostMapping("image")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(name = "upload", required = true) MultipartFile file) throws IOException {
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) throws IOException {
         Map<String, String> json = new HashMap<>();
         HttpStatus status;
         try {

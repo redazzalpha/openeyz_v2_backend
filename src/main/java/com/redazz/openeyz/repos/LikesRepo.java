@@ -5,8 +5,6 @@
 package com.redazz.openeyz.repos;
 
 import com.redazz.openeyz.models.Likes;
-import java.util.List;
-import javax.persistence.Tuple;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,10 +15,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface LikesRepo extends JpaRepository<Likes, Long> {
-    @Query("select count(l) from Likes l where l.post.id = :postId")
-    public int getcountFromPost(long postId);
-    
-    @Query("select l.id, l.author.username from Likes l where l.post.id = :postId")
-    public List<Tuple> getAuthorFromPost(long postId);
+    @Query("select count(distinct l) from Post p left join Likes l on l.post.id = :postId where l.author.id = :userId")
+    public int getUserlikePost(long postId, String userId);
     
 }

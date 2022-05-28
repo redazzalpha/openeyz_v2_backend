@@ -50,7 +50,4 @@ public class PostService implements Services<Post, Long> {
     public List<Tuple> getAll() {
         return pr.getAll();
     }
-    public Optional<Tuple> getPost(long postId) {
-        return pr.getPost(postId);
-    }
 }

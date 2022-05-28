@@ -51,9 +51,9 @@ public class CommentService implements Services<Comment, Long>{
         return cr.getAllFromPost(postId);
     }
     
-    public int getcount(long postId) {
-        return cr.getcount(postId);
-    }
+//    public int getcount(long postId) {
+//        return cr.getcount(postId);
+//    }
 
 
 }

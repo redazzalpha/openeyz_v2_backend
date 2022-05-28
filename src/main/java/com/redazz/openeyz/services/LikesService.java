@@ -18,7 +18,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class LikesService implements Services<Likes, Long> {
-    @Autowired LikesRepo lr;
+    @Autowired
+    LikesRepo lr;
 
     // crud services
     @Override
@@ -45,14 +46,12 @@ public class LikesService implements Services<Likes, Long> {
     public void delete(Likes entity) {
         lr.delete(entity);
     }
-    
-    public int getcount(long postId) {
-        return lr.getcountFromPost(postId);
-    }
-    
-    public List<Tuple> getAuthorFromPost(long postId) {
-        return lr.getAuthorFromPost(postId);
-    }
 
-    
+    // custom services
+    public boolean getUserlikePost(long postId, String userId) {
+        boolean like = false;
+        if(lr.getUserlikePost(postId, userId) > 0)
+            like = true;
+        return like;
+    }
 }
