@@ -55,21 +55,7 @@ public class UserService implements Services<Users, String> {
         ur.delete(entity);
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    public Tuple getCurrentUser(String id) {
-        return ur.getCurrentUser(id);
-    }
-    // methods
+    // custom services
     public void addRoleToUser(String username, RoleEnum roleName) {
         Users user = ur.findById(username).get();
         Role role = rr.findById(roleName).get();
@@ -77,4 +63,8 @@ public class UserService implements Services<Users, String> {
         user.getRoles().add(role);
         ur.save(user);
     }
+    public void updateDescription(String description, String userId) {
+        ur.updateDescription(description, userId);
+    }
+
 }

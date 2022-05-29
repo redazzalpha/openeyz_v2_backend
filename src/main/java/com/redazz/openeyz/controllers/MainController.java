@@ -59,6 +59,8 @@ public class MainController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
+        
+        // TODO: try to find solution to block this root on try to access when authentified
         String username = USERID.getValue();
         Map<String, Object> json = new HashMap<>();
         Users user = us.findById(username).get();
@@ -220,5 +222,11 @@ public class MainController {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
         return new ResponseEntity<>(json, status);
+    }
+    
+    @PostMapping("description")
+    public ResponseEntity<String> postDescription(@RequestParam(required = true) String description, @CookieValue(required = true) Cookie USERID) {        
+        us.updateDescription(description, USERID.getValue());
+        return new ResponseEntity<>("Description successfukky saved", HttpStatus.OK);
     }
 }

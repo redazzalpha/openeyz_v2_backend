@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * @author kyzer
  */
 @Component
-public class AuthSuccess implements AuthenticationSuccessHandler{
+public class AuthSuccess implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         String username = request.getParameter("username");
