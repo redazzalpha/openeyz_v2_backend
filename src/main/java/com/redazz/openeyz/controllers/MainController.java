@@ -169,10 +169,24 @@ public class MainController {
     public ResponseEntity<String> postLike(@RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
         Users author = us.findById(USERID.getValue()).get();
         Post post = ps.findById(postId).get();
-        Likes like = new Likes(post, author);
+        String message;
+        HttpStatus status;
 
-        ls.save(like);
-        return new ResponseEntity<>("Like successfully added", HttpStatus.CREATED);
+        if (!ls.getUserlikePost(postId, author.getUsername())) {
+
+            Likes like = new Likes(post, author);
+            ls.save(like);
+            message = "Like successfully added";
+            status = HttpStatus.CREATED;
+        }
+        else {
+            Likes like = ls.findByAuthorAndPost(author, post).get();
+            ls.delete(like);
+            message = "Like successfully removed";
+            status = HttpStatus.OK;
+        }
+
+        return new ResponseEntity<>(message, status);
     }
 
     @GetMapping("image")

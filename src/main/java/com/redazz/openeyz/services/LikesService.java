@@ -5,10 +5,11 @@
 package com.redazz.openeyz.services;
 
 import com.redazz.openeyz.models.Likes;
+import com.redazz.openeyz.models.Post;
+import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.repos.LikesRepo;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +49,12 @@ public class LikesService implements Services<Likes, Long> {
     }
 
     // custom services
+     
+    public Optional<Likes> findByAuthorAndPost(Users author, Post post) {
+        return lr.findByAuthorAndPost(author, post);
+    }
+
+    
     public boolean getUserlikePost(long postId, String userId) {
         boolean like = false;
         if(lr.getUserlikePost(postId, userId) > 0)
