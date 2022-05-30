@@ -32,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,7 +60,7 @@ public class MainController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
-        
+
         // TODO: try to find solution to block this root on try to access when authentified
         String username = USERID.getValue();
         Map<String, Object> json = new HashMap<>();
@@ -223,10 +224,29 @@ public class MainController {
         }
         return new ResponseEntity<>(json, status);
     }
+
+    @PatchMapping("user/lname")
+    public ResponseEntity<String> patchLname(@RequestParam(required = true, name = "data") String lname, @CookieValue(required = true) Cookie USERID) {
+        us.updateLname(lname, USERID.getValue());
+        return new ResponseEntity<>("Last name successfukky modified", HttpStatus.OK);
+    }
     
-    @PostMapping("description")
-    public ResponseEntity<String> postDescription(@RequestParam(required = true) String description, @CookieValue(required = true) Cookie USERID) {        
+    @PatchMapping("user/name")
+    public ResponseEntity<String> patchName(@RequestParam(required = true, name = "data") String name, @CookieValue(required = true) Cookie USERID) {
+        us.updateName(name, USERID.getValue());
+        return new ResponseEntity<>("Name successfukky modified", HttpStatus.OK);
+    }
+    
+    // TODO: got to check for username modification cause need change cookie from server according the new username
+    @PatchMapping("user/username")
+    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, @CookieValue(required = true) Cookie USERID) {
+        us.updateUsername(username, USERID.getValue());
+        return new ResponseEntity<>("Username successfukky modified", HttpStatus.OK);
+    }
+
+    @PatchMapping("description")
+    public ResponseEntity<String> patchDescription(@RequestParam(required = true) String description, @CookieValue(required = true) Cookie USERID) {
         us.updateDescription(description, USERID.getValue());
-        return new ResponseEntity<>("Description successfukky saved", HttpStatus.OK);
+        return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
 }

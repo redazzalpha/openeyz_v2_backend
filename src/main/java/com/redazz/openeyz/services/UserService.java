@@ -12,7 +12,6 @@ import com.redazz.openeyz.repos.RoleRepo;
 import com.redazz.openeyz.repos.UserRepo;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +61,15 @@ public class UserService implements Services<Users, String> {
 
         user.getRoles().add(role);
         ur.save(user);
+    }
+    public void updateLname(String lname, String userId) {
+        ur.updateLname(lname, userId);
+    }
+    public void updateName(String name, String userId) {
+        ur.updateName(name, userId);
+    }
+    public void updateUsername(String username, String userId) {
+        ur.updateUsername(username, userId);
     }
     public void updateDescription(String description, String userId) {
         ur.updateDescription(description, userId);

@@ -17,10 +17,26 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface UserRepo extends JpaRepository<Users, String> {
-    
+
     //important to make a update query must add @transactional and @modifying
+    @Modifying
+    @Transactional
+    @Query("update Users set lname = :lname where username = :userId")
+    public void updateLname(String lname, String userId);
+
+    @Modifying
+    @Transactional
+    @Query("update Users set name = :name where username = :userId")
+    public void updateName(String name, String userId);
+
+    @Modifying
+    @Transactional
+    @Query("update Users set username = :username where username = :userId")
+    public void updateUsername(String username, String userId);
+
     @Modifying
     @Transactional
     @Query("update Users set description = :description where username = :userId")
     public void updateDescription(String description, String userId);
+
 }
