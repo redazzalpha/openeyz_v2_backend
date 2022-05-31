@@ -4,6 +4,7 @@
  */
 package com.redazz.openeyz.controllers;
 
+import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.models.Comment;
@@ -14,6 +15,8 @@ import com.redazz.openeyz.services.CommentService;
 import com.redazz.openeyz.services.LikesService;
 import com.redazz.openeyz.services.PostService;
 import com.redazz.openeyz.services.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,9 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.Tuple;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import org.apache.tomcat.util.json.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
@@ -57,6 +63,8 @@ public class MainController {
     LikesService ls;
     @Autowired
     JwTokenUtils jwt;
+    @Autowired
+    Encoder encoder;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
@@ -228,20 +236,13 @@ public class MainController {
     @PatchMapping("user/lname")
     public ResponseEntity<String> patchLname(@RequestParam(required = true, name = "data") String lname, @CookieValue(required = true) Cookie USERID) {
         us.updateLname(lname, USERID.getValue());
-        return new ResponseEntity<>("Last name successfukky modified", HttpStatus.OK);
+        return new ResponseEntity<>("Last name successfully modified", HttpStatus.OK);
     }
-    
+
     @PatchMapping("user/name")
     public ResponseEntity<String> patchName(@RequestParam(required = true, name = "data") String name, @CookieValue(required = true) Cookie USERID) {
         us.updateName(name, USERID.getValue());
-        return new ResponseEntity<>("Name successfukky modified", HttpStatus.OK);
-    }
-    
-    // TODO: got to check for username modification cause need change cookie from server according the new username
-    @PatchMapping("user/username")
-    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, @CookieValue(required = true) Cookie USERID) {
-        us.updateUsername(username, USERID.getValue());
-        return new ResponseEntity<>("Username successfukky modified", HttpStatus.OK);
+        return new ResponseEntity<>("Name successfully modified", HttpStatus.OK);
     }
 
     @PatchMapping("description")
@@ -249,4 +250,38 @@ public class MainController {
         us.updateDescription(description, USERID.getValue());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
+
+    @PatchMapping("user/password")
+    public ResponseEntity<String> patchPassword(@RequestParam(required = true) String password, @RequestParam(required = true) String password1, @CookieValue(required = true) Cookie USERID) {
+
+        String hash, message = "Invalid. Password does not match";
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        Users user = us.findById(USERID.getValue()).get();
+
+        if (user == null) {
+            message = "User was not found!";
+            status = HttpStatus.NOT_FOUND;
+            return new ResponseEntity<>(message, status);
+        }
+
+        boolean match = encoder.matches(password, user.getPassword());
+
+        if (match) {
+            hash = encoder.encode(password);
+            us.updatePassword(hash, USERID.getValue());
+            message = "Password was successfully modified";
+            status = HttpStatus.OK;
+        }
+
+        return new ResponseEntity<>(message, status);
+    }
+
+    // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
+    @PatchMapping("user/username")
+    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, @CookieValue(required = true) Cookie USERID, HttpServletResponse response) {
+        us.updateUsername(username, USERID.getValue());
+        USERID.setValue(username);
+        return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
+    }
+
 }

@@ -68,11 +68,17 @@ public class UserService implements Services<Users, String> {
     public void updateName(String name, String userId) {
         ur.updateName(name, userId);
     }
-    public void updateUsername(String username, String userId) {
-        ur.updateUsername(username, userId);
-    }
     public void updateDescription(String description, String userId) {
         ur.updateDescription(description, userId);
+    }
+    public void updatePassword(String password, String userId) {
+        ur.updatePassword(password, userId);
+    }
+
+    
+    
+    public void updateUsername(String username, String userId) {
+        ur.updateUsername(username, userId);
     }
 
 }
