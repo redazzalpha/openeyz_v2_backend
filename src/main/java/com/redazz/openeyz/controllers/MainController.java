@@ -215,7 +215,7 @@ public class MainController {
         return new ResponseEntity<>(image, status);
     }
     @PostMapping("image")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) throws IOException {
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) {
         Map<String, String> json = new HashMap<>();
         HttpStatus status;
         try {
@@ -254,7 +254,7 @@ public class MainController {
     @PatchMapping("user/password")
     public ResponseEntity<String> patchPassword(@RequestParam(required = true) String password, @RequestParam(required = true) String password1, @CookieValue(required = true) Cookie USERID) {
 
-        String hash, message = "Invalid. Password does not match";
+        String hash, message = "Invalid. Password does not match with the current";
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         Users user = us.findById(USERID.getValue()).get();
 
@@ -274,6 +274,26 @@ public class MainController {
         }
 
         return new ResponseEntity<>(message, status);
+    }
+
+    @PostMapping("user/img")
+    public ResponseEntity<String> posthUserImg(@RequestParam(required = true) MultipartFile file) {
+        HttpStatus status;
+        String message;
+        try {
+            String filename = file.getOriginalFilename();
+            File dest = new File(Define.ASSETS_USER_DIRECTORY + "/" + filename);
+
+            file.transferTo(dest);
+            message = "User img successfully modified";
+            status = HttpStatus.CREATED;
+        }
+        catch (IOException | IllegalStateException e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+            message = e.getMessage();
+        }
+        return new ResponseEntity<>(message, status);
+
     }
 
     // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment

@@ -14,6 +14,7 @@ public class Define {
     public static final String AUTH_FAILURE_URL = ROOT_URL + "/auth-failure";
     public static final String UPLOAD_IMAGE_URL = ROOT_URL + "/image";
     public static final String ASSETS_DIRECTORY = "assets";
+    public static final String ASSETS_USER_DIRECTORY = "assets/users";
     
     public static final String DOWNLOAD_IMAGE_URL = "http://localhost:8081/api/image?img=";
     public static final String ALLOWED_ORIGIN_URL = "http://localhost:8080";
