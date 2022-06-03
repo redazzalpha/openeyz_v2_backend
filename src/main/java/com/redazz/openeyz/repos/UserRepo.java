@@ -5,6 +5,7 @@
 package com.redazz.openeyz.repos;
 
 import com.redazz.openeyz.models.Users;
+import java.util.List;
 import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,6 +19,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepo extends JpaRepository<Users, String> {
 
+    @Query(value="select name, avatar_src, role, users.username from users left join user_roles on users.username = user_roles.username", nativeQuery = true)
+    public List<Object> getAllSimple();
+    
     //important to make a update query must add @transactional and @modifying
     @Modifying
     @Transactional

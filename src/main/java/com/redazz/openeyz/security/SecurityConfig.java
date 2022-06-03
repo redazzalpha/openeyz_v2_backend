@@ -52,6 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     AuthFailure authFailure;
 
+    // TODO: TRy onto find a way to better securize the secret key
     @Value("${jwt.secret}")
     private String kkk;
 

@@ -12,6 +12,7 @@ import com.redazz.openeyz.repos.RoleRepo;
 import com.redazz.openeyz.repos.UserRepo;
 import java.util.List;
 import java.util.Optional;
+import javax.persistence.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +23,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService implements Services<Users, String> {
 
-    @Autowired UserRepo ur;
-    @Autowired RoleRepo rr;
-    @Autowired Encoder encoder;
+    @Autowired
+    UserRepo ur;
+    @Autowired
+    RoleRepo rr;
+    @Autowired
+    Encoder encoder;
 
     // crud services
     @Override
@@ -53,8 +57,12 @@ public class UserService implements Services<Users, String> {
     public void delete(Users entity) {
         ur.delete(entity);
     }
-    
+
     // custom services
+    public List<Object> getAllSimple() {
+        return ur.getAllSimple();
+    }
+
     public void addRoleToUser(String username, RoleEnum roleName) {
         Users user = ur.findById(username).get();
         Role role = rr.findById(roleName).get();
@@ -78,8 +86,6 @@ public class UserService implements Services<Users, String> {
         ur.updateImg(avatarSrc, userId);
     }
 
-    
-    
     public void updateUsername(String username, String userId) {
         ur.updateUsername(username, userId);
     }

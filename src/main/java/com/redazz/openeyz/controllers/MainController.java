@@ -84,6 +84,11 @@ public class MainController {
         return new ResponseEntity<>(json, HttpStatus.OK);
     }
 
+    @GetMapping("user/simple")
+    public ResponseEntity<List<Object>> getAllUsuersSimple() {
+        return new ResponseEntity<>(us.getAllSimple(), HttpStatus.OK);
+    }
+
     @PostMapping("auth-failure")
     public ResponseEntity<String> authError(HttpServletRequest request) {
         String username = request.getParameter("username");
@@ -242,19 +247,16 @@ public class MainController {
         us.updateLname(lname, USERID.getValue());
         return new ResponseEntity<>("Last name successfully modified", HttpStatus.OK);
     }
-
     @PatchMapping("user/name")
     public ResponseEntity<String> patchName(@RequestParam(required = true, name = "data") String name, @CookieValue(required = true) Cookie USERID) {
         us.updateName(name, USERID.getValue());
         return new ResponseEntity<>("Name successfully modified", HttpStatus.OK);
     }
-
     @PatchMapping("description")
     public ResponseEntity<String> patchDescription(@RequestParam(required = true) String description, @CookieValue(required = true) Cookie USERID) {
         us.updateDescription(description, USERID.getValue());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
-
     @PatchMapping("user/password")
     public ResponseEntity<String> patchPassword(@RequestParam(required = true) String password, @RequestParam(required = true) String password1, @CookieValue(required = true) Cookie USERID) {
 
@@ -279,7 +281,6 @@ public class MainController {
 
         return new ResponseEntity<>(message, status);
     }
-
     @PostMapping("user/img")
     public ResponseEntity<String> posthUserImg(@RequestParam(required = true) MultipartFile file, @CookieValue(required = true) Cookie USERID) {
         HttpStatus status;
@@ -300,7 +301,6 @@ public class MainController {
         }
         return new ResponseEntity<>(message, status);
     }
-
     // TODO: got to check better security here and everywhere when perform any action
     @DeleteMapping("user/delete")
     public ResponseEntity<Map<String, Object>> deleteAccount(@CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID, HttpServletResponse response) {
@@ -319,21 +319,20 @@ public class MainController {
                 .maxAge(Duration.ZERO)
                 .domain("localhost")
                 .build();
-        
+
         Map<String, Object> json = new HashMap<>();
         HttpHeaders headers = new HttpHeaders();
-        
+
         String token = jwt.encode();
         json.put("token", token);
 
         headers.add(HttpHeaders.SET_COOKIE, jsessionCookie.toString());
         headers.add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
-        
+
         us.deleteById(username);
-        
+
         return new ResponseEntity<>(json, headers, HttpStatus.OK);
     }
-
     // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
     @PatchMapping("user/username")
     public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, @CookieValue(required = true) Cookie USERID, HttpServletResponse response) {
