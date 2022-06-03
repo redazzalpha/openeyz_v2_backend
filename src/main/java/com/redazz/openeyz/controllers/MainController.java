@@ -21,22 +21,26 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.Tuple;
-import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-import org.apache.tomcat.util.json.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -277,7 +281,7 @@ public class MainController {
     }
 
     @PostMapping("user/img")
-    public ResponseEntity<String> posthUserImg(@RequestParam(required = true) MultipartFile file) {
+    public ResponseEntity<String> posthUserImg(@RequestParam(required = true) MultipartFile file, @CookieValue(required = true) Cookie USERID) {
         HttpStatus status;
         String message;
         try {
@@ -285,7 +289,9 @@ public class MainController {
             File dest = new File(Define.ASSETS_USER_DIRECTORY + "/" + filename);
 
             file.transferTo(dest);
-            message = "User img successfully modified";
+            us.updateImg(Define.DOWNLOAD_IMAGE_URL + filename, USERID.getValue());
+
+            message = Define.DOWNLOAD_IMAGE_URL + filename;
             status = HttpStatus.CREATED;
         }
         catch (IOException | IllegalStateException e) {
@@ -293,7 +299,39 @@ public class MainController {
             message = e.getMessage();
         }
         return new ResponseEntity<>(message, status);
+    }
 
+    // TODO: got to check better security here and everywhere when perform any action
+    @DeleteMapping("user/delete")
+    public ResponseEntity<Map<String, Object>> deleteAccount(@CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID, HttpServletResponse response) {
+        String username = USERID.getValue();
+        ResponseCookie jsessionCookie = ResponseCookie.from(JSESSIONID.getName(), JSESSIONID.getValue())
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(Duration.ZERO)
+                .domain("localhost")
+                .build();
+        ResponseCookie userIdCookie = ResponseCookie.from(USERID.getName(), USERID.getValue())
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(Duration.ZERO)
+                .domain("localhost")
+                .build();
+        
+        Map<String, Object> json = new HashMap<>();
+        HttpHeaders headers = new HttpHeaders();
+        
+        String token = jwt.encode();
+        json.put("token", token);
+
+        headers.add(HttpHeaders.SET_COOKIE, jsessionCookie.toString());
+        headers.add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
+        
+        us.deleteById(username);
+        
+        return new ResponseEntity<>(json, headers, HttpStatus.OK);
     }
 
     // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment

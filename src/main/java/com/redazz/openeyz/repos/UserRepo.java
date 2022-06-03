@@ -39,6 +39,11 @@ public interface UserRepo extends JpaRepository<Users, String> {
     @Query("update Users set password = :password where username = :userId")
     public void updatePassword(String password, String userId);
 
+    @Modifying
+    @Transactional
+    @Query("update Users set avatarSrc = :avatarSrc where username = :userId")
+    public void updateImg(String avatarSrc, String userId);
+
     // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
     @Modifying
     @Transactional

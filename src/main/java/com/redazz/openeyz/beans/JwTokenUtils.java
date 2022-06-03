@@ -37,6 +37,7 @@ public class JwTokenUtils {
     public JwTokenUtils() {
         hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
     }
+    // TODO: change validity expiration of the token
     public String encode(String username) {
         Instant now = Instant.now();
         Users user = us.findById(username).get();
@@ -47,6 +48,17 @@ public class JwTokenUtils {
             .setId(UUID.randomUUID().toString())
             .setIssuedAt(Date.from(now))
             .setExpiration(Date.from(now.plus(30l, ChronoUnit.DAYS)))
+            .signWith(SignatureAlgorithm.HS256, hmacKey)
+            .compact();
+
+        return jwtToken;
+    }
+    public String encode() {
+        Instant now = Instant.now();
+        String jwtToken = Jwts.builder()
+            .setId(UUID.randomUUID().toString())
+            .setIssuedAt(Date.from(now))
+            .setExpiration(Date.from(now))
             .signWith(SignatureAlgorithm.HS256, hmacKey)
             .compact();
 

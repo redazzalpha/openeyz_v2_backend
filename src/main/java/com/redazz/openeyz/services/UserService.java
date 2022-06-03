@@ -74,6 +74,9 @@ public class UserService implements Services<Users, String> {
     public void updatePassword(String password, String userId) {
         ur.updatePassword(password, userId);
     }
+    public void updateImg(String avatarSrc, String userId) {
+        ur.updateImg(avatarSrc, userId);
+    }
 
     
     
