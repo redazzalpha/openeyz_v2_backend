@@ -18,8 +18,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class PostService implements Services<Post, Long> {
-    @Autowired PostRepo pr;
-    
+    @Autowired
+    PostRepo pr;
+
     // crud services
     @Override
     public Post save(Post entity) {
@@ -45,9 +46,17 @@ public class PostService implements Services<Post, Long> {
     public void delete(Post entity) {
         pr.delete(entity);
     }
-    
+
     // custom services
     public List<Tuple> getAll() {
         return pr.getAll();
     }
+    public List<Object> getAll1() {
+        return pr.getAll1();
+    }
+
+    public List<Tuple> getAllFromUser(String username) {
+        return pr.getAllFromUser(username);
+    }
+
 }

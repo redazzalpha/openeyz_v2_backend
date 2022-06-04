@@ -107,14 +107,26 @@ public class MainController {
     }
 
     @GetMapping("publication")
-    public ResponseEntity<List<Object>> getAllPost(@CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<List<Object>> getAllPost(@RequestParam(required = false) String authorId, @CookieValue(required = true) Cookie USERID) {
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
         HttpStatus status;
+        
+        System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz " + authorId);
+        
+        
+        
+        List<Tuple> tuples;
+        if(authorId == null)
+            tuples = ps.getAll();
+        else tuples = ps.getAllFromUser(authorId);
+        
+        
+        
 
         try {
-            for (Tuple t : ps.getAll()) {
+            for (Tuple t : tuples) {
                 Map<String, Object> json = new HashMap<>();
                 post = (Post) (t.get(0));
                 userLike = ls.getUserlikePost(post.getId(), USERID.getValue());
