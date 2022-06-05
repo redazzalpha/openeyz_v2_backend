@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepo extends JpaRepository<Users, String> {
 
-    @Query(value="select name, avatar_src, role, users.username from users left join user_roles on users.username = user_roles.username", nativeQuery = true)
+    @Query(value="select name, avatar_src, role, users.username from users left join user_roles on users.username = user_roles.username order by name", nativeQuery = true)
     public List<Object> getAllSimple();
     
     //important to make a update query must add @transactional and @modifying

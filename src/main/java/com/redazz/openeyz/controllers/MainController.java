@@ -15,16 +15,12 @@ import com.redazz.openeyz.services.CommentService;
 import com.redazz.openeyz.services.LikesService;
 import com.redazz.openeyz.services.PostService;
 import com.redazz.openeyz.services.UserService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,18 +109,11 @@ public class MainController {
         boolean userLike;
         HttpStatus status;
         
-        System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz " + authorId);
-        
-        
-        
         List<Tuple> tuples;
         if(authorId == null)
             tuples = ps.getAll();
         else tuples = ps.getAllFromUser(authorId);
         
-        
-        
-
         try {
             for (Tuple t : tuples) {
                 Map<String, Object> json = new HashMap<>();
