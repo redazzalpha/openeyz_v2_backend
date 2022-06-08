@@ -128,9 +128,8 @@ public class MainController {
                 userLike = ls.getUserlikePost(post.getId(), USERID.getValue());
 
                 json.put("post", post);
-                json.put("creation", t.get(1));
-                json.put("commentCount", t.get(2));
-                json.put("likeCount", t.get(3));
+                json.put("commentCount", t.get(1));
+                json.put("likeCount", t.get(2));
                 json.put("userLike", userLike);
 
                 list.add(json);

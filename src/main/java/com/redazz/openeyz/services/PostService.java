@@ -51,9 +51,6 @@ public class PostService implements Services<Post, Long> {
     public List<Tuple> getAll() {
         return pr.getAll();
     }
-    public List<Object> getAll1() {
-        return pr.getAll1();
-    }
     public List<Tuple> getAllFromUser(String username) {
         return pr.getAllFromUser(username);
     }
