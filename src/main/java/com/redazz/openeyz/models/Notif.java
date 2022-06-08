@@ -6,6 +6,7 @@ package com.redazz.openeyz.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -35,6 +36,10 @@ public class Notif implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     
+    @NonNull
+    @Column(columnDefinition = "boolean default false", nullable = false)
+    Boolean read;
+    
     //relationships
     @NonNull
     @ManyToOne
@@ -47,6 +52,4 @@ public class Notif implements Serializable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "comment_id", referencedColumnName = "id")
     private Comment comment;
-
-    
 }

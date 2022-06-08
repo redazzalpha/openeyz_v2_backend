@@ -83,7 +83,7 @@ public class MainController {
         json.put("user", user);
         return new ResponseEntity<>(json, HttpStatus.OK);
     }
-    
+
     @PostMapping("auth-failure")
     public ResponseEntity<String> authError(HttpServletRequest request) {
         String username = request.getParameter("username");
@@ -173,7 +173,7 @@ public class MainController {
 
         cs.save(com);
 
-        Notif notif = new Notif(com.getPost().getAuthor(), com);
+        Notif notif = new Notif(false, com.getPost().getAuthor(), com);
         ns.save(notif);
 
         return new ResponseEntity<>("Comment successfully created", HttpStatus.CREATED);
@@ -241,24 +241,36 @@ public class MainController {
     public ResponseEntity<List<Notif>> getNotif(@CookieValue(required = true) Cookie USERID) {
         return new ResponseEntity<>(ns.getNotifsFromOwner(USERID.getValue()), HttpStatus.OK);
     }
+    @PatchMapping("notif")
+    public ResponseEntity<String> readNotif( @CookieValue(required = true) Cookie USERID) {
+
+        ns.readAllFromUser(USERID.getValue());
+        return new ResponseEntity<>("all notifications read successfully", HttpStatus.OK);
+    }
+    @DeleteMapping("notif")
+    public ResponseEntity<String> deleteNotif( @CookieValue(required = true) Cookie USERID) {
+
+        ns.deleteAllFromUser(USERID.getValue());
+        return new ResponseEntity<>("all notifications has been deleted successfully", HttpStatus.OK);
+    }
 
     @PatchMapping("user/lname")
-    public ResponseEntity<String> patchLname(@RequestParam(required = true, name = "data") String lname, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname, @CookieValue(required = true) Cookie USERID) {
         us.updateLname(lname, USERID.getValue());
         return new ResponseEntity<>("Last name successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/name")
-    public ResponseEntity<String> patchName(@RequestParam(required = true, name = "data") String name, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> modifyName(@RequestParam(required = true, name = "data") String name, @CookieValue(required = true) Cookie USERID) {
         us.updateName(name, USERID.getValue());
         return new ResponseEntity<>("Name successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/description")
-    public ResponseEntity<String> patchDescription(@RequestParam(required = true) String description, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> modifyDescription(@RequestParam(required = true) String description, @CookieValue(required = true) Cookie USERID) {
         us.updateDescription(description, USERID.getValue());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/password")
-    public ResponseEntity<String> patchPassword(@RequestParam(required = true) String password, @RequestParam(required = true) String password1, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String password, @RequestParam(required = true) String password1, @CookieValue(required = true) Cookie USERID) {
 
         String hash, message = "Invalid. Password does not match with the current";
         HttpStatus status = HttpStatus.UNAUTHORIZED;
@@ -282,7 +294,7 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
     @PostMapping("user/img")
-    public ResponseEntity<String> posthUserImg(@RequestParam(required = true) MultipartFile file, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> modifyUserImg(@RequestParam(required = true) MultipartFile file, @CookieValue(required = true) Cookie USERID) {
         HttpStatus status;
         String message;
         try {

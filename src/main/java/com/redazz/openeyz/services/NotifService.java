@@ -50,5 +50,12 @@ public class NotifService implements Services<Notif, Long> {
     public List<Notif> getNotifsFromOwner(String owner) {
         return nr.getNotifsFromOwner(owner);
     }
+    public void readAllFromUser(String owner) {
+        nr.readAllFromUser(owner);
+    }
+    public void deleteAllFromUser(String owner) {
+        nr.deleteAllFromUser(owner);
+        
+    }
 
 }
