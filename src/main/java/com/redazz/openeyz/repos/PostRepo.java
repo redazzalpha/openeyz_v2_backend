@@ -19,8 +19,6 @@ import org.springframework.stereotype.Repository;
 public interface PostRepo extends JpaRepository<Post, Long> {
     @Query("select p, to_char(p.creation, 'DD/MM/YYYY at HH24:MI'), count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id  group by p.id order by p.creation desc")
     public List<Tuple> getAll();    
-    @Query("select p, to_char(p.creation, 'DD/MM/YYYY at HH24:MI'), count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id  group by p.id order by p.creation desc")
-    public List<Object> getAll1();    
     @Query("select p, to_char(p.creation, 'DD/MM/YYYY at HH24:MI'), count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.author.id = :username  group by p.id order by p.creation desc")
     public List<Tuple> getAllFromUser(String username);    
 }

@@ -13,9 +13,10 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -25,7 +26,7 @@ import org.hibernate.annotations.OnDeleteAction;
  */
 @Entity
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(value = "id", allowGetters = true)
 public class Notif implements Serializable {
@@ -35,11 +36,13 @@ public class Notif implements Serializable {
     private long id;
     
     //relationships
+    @NonNull
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", referencedColumnName = "username")
-    private Users user;
+    @JoinColumn(name = "owner_id", referencedColumnName = "username")
+    private Users owner;
     
+    @NonNull
     @OneToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "comment_id", referencedColumnName = "id")

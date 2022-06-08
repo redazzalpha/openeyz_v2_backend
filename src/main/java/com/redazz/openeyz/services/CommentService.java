@@ -8,7 +8,6 @@ import com.redazz.openeyz.models.Comment;
 import com.redazz.openeyz.repos.CommentRepo;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +46,7 @@ public class CommentService implements Services<Comment, Long>{
     }
     
     // custom services
-    public List<Tuple> getAllFromPost(long postId) {
+    public List<Comment> getAllFromPost(long postId) {
         return cr.getAllFromPost(postId);
     }
     

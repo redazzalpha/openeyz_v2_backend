@@ -9,10 +9,12 @@ import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.models.Comment;
 import com.redazz.openeyz.models.Likes;
+import com.redazz.openeyz.models.Notif;
 import com.redazz.openeyz.models.Post;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.CommentService;
 import com.redazz.openeyz.services.LikesService;
+import com.redazz.openeyz.services.NotifService;
 import com.redazz.openeyz.services.PostService;
 import com.redazz.openeyz.services.UserService;
 import java.io.File;
@@ -62,6 +64,8 @@ public class MainController {
     @Autowired
     LikesService ls;
     @Autowired
+    NotifService ns;
+    @Autowired
     JwTokenUtils jwt;
     @Autowired
     Encoder encoder;
@@ -79,12 +83,7 @@ public class MainController {
         json.put("user", user);
         return new ResponseEntity<>(json, HttpStatus.OK);
     }
-
-    @GetMapping("user/simple")
-    public ResponseEntity<List<Object>> getAllUsuersSimple() {
-        return new ResponseEntity<>(us.getAllSimple(), HttpStatus.OK);
-    }
-
+    
     @PostMapping("auth-failure")
     public ResponseEntity<String> authError(HttpServletRequest request) {
         String username = request.getParameter("username");
@@ -102,18 +101,26 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
 
+    @GetMapping("simple")
+    public ResponseEntity<List<Object>> getAllUsuersSimple() {
+        return new ResponseEntity<>(us.getAllSimple(), HttpStatus.OK);
+    }
+
     @GetMapping("publication")
     public ResponseEntity<List<Object>> getAllPost(@RequestParam(required = false) String authorId, @CookieValue(required = true) Cookie USERID) {
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
         HttpStatus status;
-        
+
         List<Tuple> tuples;
-        if(authorId == null)
+        if (authorId == null) {
             tuples = ps.getAll();
-        else tuples = ps.getAllFromUser(authorId);
-        
+        }
+        else {
+            tuples = ps.getAllFromUser(authorId);
+        }
+
         try {
             for (Tuple t : tuples) {
                 Map<String, Object> json = new HashMap<>();
@@ -155,24 +162,8 @@ public class MainController {
     }
 
     @GetMapping("comment")
-    public ResponseEntity<List<Object>> getAllComment(@RequestParam(required = true) long postId) {
-        Map<String, Object> json = new HashMap<>();
-        List<Object> list = new ArrayList<>();
-        HttpStatus status;
-
-        try {
-            for (Tuple t : cs.getAllFromPost(postId)) {
-                json.put("comment", t.get(0));
-                json.put("creation", t.get(1));
-                list.add(json);
-                json = new HashMap<>();
-            }
-            status = HttpStatus.OK;
-        }
-        catch (Exception e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        return new ResponseEntity<>(list, status);
+    public ResponseEntity<List<Comment>> getAllComment(@RequestParam(required = true) long postId) {
+        return new ResponseEntity<>(cs.getAllFromPost(postId), HttpStatus.OK);
     }
     @Transactional
     @PostMapping("comment")
@@ -180,7 +171,11 @@ public class MainController {
         Post post = ps.findById(postId).get();
         Users user = us.findById(USERID.getValue()).get();
         Comment com = new Comment(comment, post, user);
+
         cs.save(com);
+
+        Notif notif = new Notif(com.getPost().getAuthor(), com);
+        ns.save(notif);
 
         return new ResponseEntity<>("Comment successfully created", HttpStatus.CREATED);
     }
@@ -243,6 +238,11 @@ public class MainController {
         return new ResponseEntity<>(json, status);
     }
 
+    @GetMapping("notif")
+    public ResponseEntity<List<Notif>> getNotif(@CookieValue(required = true) Cookie USERID) {
+        return new ResponseEntity<>(ns.getNotifsFromOwner(USERID.getValue()), HttpStatus.OK);
+    }
+
     @PatchMapping("user/lname")
     public ResponseEntity<String> patchLname(@RequestParam(required = true, name = "data") String lname, @CookieValue(required = true) Cookie USERID) {
         us.updateLname(lname, USERID.getValue());
@@ -253,7 +253,7 @@ public class MainController {
         us.updateName(name, USERID.getValue());
         return new ResponseEntity<>("Name successfully modified", HttpStatus.OK);
     }
-    @PatchMapping("description")
+    @PatchMapping("user/description")
     public ResponseEntity<String> patchDescription(@RequestParam(required = true) String description, @CookieValue(required = true) Cookie USERID) {
         us.updateDescription(description, USERID.getValue());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
