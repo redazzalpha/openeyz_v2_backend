@@ -53,9 +53,14 @@ public class NotifService implements Services<Notif, Long> {
     public void readAllFromUser(String owner) {
         nr.readAllFromUser(owner);
     }
+    public void readOneFromUser(long notifId) {
+        nr.readOneFromUser(notifId);
+    }
     public void deleteAllFromUser(String owner) {
         nr.deleteAllFromUser(owner);
-        
-    }
 
+    }
+    public void deleteOneFromUser(long notifId) {
+        nr.deleteOneFromUser(notifId);
+    }
 }

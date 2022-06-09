@@ -159,6 +159,11 @@ public class MainController {
         }
         return new ResponseEntity<>(message, status);
     }
+    @DeleteMapping("publication")
+    public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId) {
+        ps.deleteById(postId);
+        return new ResponseEntity<>("", HttpStatus.OK);
+    }
 
     @GetMapping("comment")
     public ResponseEntity<List<Comment>> getAllComment(@RequestParam(required = true) long postId) {
@@ -238,20 +243,30 @@ public class MainController {
     }
 
     @GetMapping("notif")
-    public ResponseEntity<List<Notif>> getNotif(@CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<List<Notif>> getAllNotifs(@CookieValue(required = true) Cookie USERID) {
         return new ResponseEntity<>(ns.getNotifsFromOwner(USERID.getValue()), HttpStatus.OK);
     }
     @PatchMapping("notif")
-    public ResponseEntity<String> readNotif( @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> readAllNotifs( @CookieValue(required = true) Cookie USERID) {
 
         ns.readAllFromUser(USERID.getValue());
         return new ResponseEntity<>("all notifications read successfully", HttpStatus.OK);
     }
     @DeleteMapping("notif")
-    public ResponseEntity<String> deleteNotif( @CookieValue(required = true) Cookie USERID) {
-
+    public ResponseEntity<String> deleteAllNotif(@CookieValue(required = true) Cookie USERID) {
         ns.deleteAllFromUser(USERID.getValue());
         return new ResponseEntity<>("all notifications has been deleted successfully", HttpStatus.OK);
+    }
+    @PatchMapping("notif/one")
+    public ResponseEntity<String> readNotifOne(@RequestParam(required = true) long notifId, @CookieValue(required = true) Cookie USERID) {
+
+        ns.readOneFromUser(notifId);
+        return new ResponseEntity<>("notification read successfully", HttpStatus.OK);
+    }
+    @DeleteMapping("notif/one")
+    public ResponseEntity<String> deleteNotifOne(@RequestParam(required = true) long notifId, @CookieValue(required = true) Cookie USERID) {
+        ns.deleteOneFromUser(notifId);
+        return new ResponseEntity<>("notification has been deleted successfully", HttpStatus.OK);
     }
 
     @PatchMapping("user/lname")

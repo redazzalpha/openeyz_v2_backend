@@ -27,9 +27,18 @@ public interface NotifRepo extends JpaRepository<Notif, Long> {
     @Query("update Notif set read = true where owner.username = :owner")
     public void readAllFromUser(String owner);
     
-    
+    @Transactional
+    @Modifying
+    @Query("update Notif set read = true where id = :notifId")
+    public void readOneFromUser(long notifId);
+
     @Transactional
     @Modifying
     @Query(value = "delete from Notif where owner.username = :owner")
     public void deleteAllFromUser(String owner);
+    @Transactional
+
+    @Modifying
+    @Query(value = "delete from Notif where id = :notifId")
+    public void deleteOneFromUser(long notifId);
 }
