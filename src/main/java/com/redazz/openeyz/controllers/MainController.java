@@ -269,6 +269,17 @@ public class MainController {
         return new ResponseEntity<>("notification has been deleted successfully", HttpStatus.OK);
     }
 
+    
+    @GetMapping("user")
+    public ResponseEntity<Users> getUser(@CookieValue(required = true) Cookie USERID) {
+        return new ResponseEntity<>( us.findById(USERID.getValue()).get(), HttpStatus.OK);
+    }
+    @Transactional
+    @PatchMapping("user/dark")
+    public ResponseEntity<String> modifyDark(@RequestParam(required = true) boolean dark, @CookieValue(required = true) Cookie USERID) {
+        us.updateDark(dark, USERID.getValue());
+        return new ResponseEntity<>("Dark theme has been successfully set", HttpStatus.OK);
+    }
     @PatchMapping("user/lname")
     public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname, @CookieValue(required = true) Cookie USERID) {
         us.updateLname(lname, USERID.getValue());

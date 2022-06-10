@@ -31,38 +31,42 @@ import org.hibernate.validator.constraints.Length;
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Users  implements Serializable {
+public class Users implements Serializable {
     // properties
     @Id
     @NonNull
     private String username;
-    
+
     @NonNull
     @Column(nullable = false)
     private String lname;
-    
+
     @NonNull
     @Column(nullable = false)
     private String name;
-    
+
     @NonNull
     @Length(min = 8)
     @Column(nullable = false)
     private String password;
-    
-    private boolean  state = true;
-    
+
+    @Column(columnDefinition = "boolean default true", nullable = false)
+    private boolean state = true;
+
     @Column(nullable = true, columnDefinition = "varchar(255) default 'no description for the moment'")
     private String description;
-    
+
     @Column(nullable = true)
     private String avatarSrc;
-    
+
+    @Column(columnDefinition = "boolean default false", nullable = false)
+    private boolean dark;
+
     // relationships
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinTable(
-        name = "user_roles", 
+        name = "user_roles",
         joinColumns = @JoinColumn(name = "username", referencedColumnName = "username"),
         inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "roleName")
     )

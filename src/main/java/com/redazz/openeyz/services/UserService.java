@@ -61,13 +61,8 @@ public class UserService implements Services<Users, String> {
     public List<Object> getAllSimple() {
         return ur.getAllSimple();
     }
-
-    public void addRoleToUser(String username, RoleEnum roleName) {
-        Users user = ur.findById(username).get();
-        Role role = rr.findById(roleName).get();
-
-        user.getRoles().add(role);
-        ur.save(user);
+    public void updateDark(boolean dark, String userId) {
+        this.ur.updateDark(dark, userId);
     }
     public void updateLname(String lname, String userId) {
         ur.updateLname(lname, userId);
@@ -83,6 +78,13 @@ public class UserService implements Services<Users, String> {
     }
     public void updateImg(String avatarSrc, String userId) {
         ur.updateImg(avatarSrc, userId);
+    }
+    public void addRoleToUser(String username, RoleEnum roleName) {
+        Users user = ur.findById(username).get();
+        Role role = rr.findById(roleName).get();
+
+        user.getRoles().add(role);
+        ur.save(user);
     }
 
     public void updateUsername(String username, String userId) {
