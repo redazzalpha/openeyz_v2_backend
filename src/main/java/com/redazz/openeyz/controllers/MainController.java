@@ -209,6 +209,9 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
 
+    // TODO: modify file name of image when on server to get inique image name because it may cause troubles
+    
+    // TODO: delete image from server when image removed from front end on cancel action
     @GetMapping("image")
     public ResponseEntity<ByteArrayResource> downloadImage(@RequestParam(required = true) String img) throws IOException {
         ByteArrayResource image;
@@ -325,7 +328,8 @@ public class MainController {
         String message;
         try {
             String filename = file.getOriginalFilename();
-            File dest = new File(Define.ASSETS_USER_DIRECTORY + "/" + filename);
+            File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
+//            File dest = new File(Define.ASSETS_USER_DIRECTORY + "/" + filename);
 
             file.transferTo(dest);
             us.updateImg(Define.DOWNLOAD_IMAGE_URL + filename, USERID.getValue());
