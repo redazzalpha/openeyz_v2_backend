@@ -101,24 +101,52 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
 
-    @GetMapping("simple")
-    public ResponseEntity<List<Object>> getAllUsuersSimple() {
-        return new ResponseEntity<>(us.getAllSimple(), HttpStatus.OK);
-    }
-
     @GetMapping("publication")
     public ResponseEntity<List<Object>> getAllPost(@RequestParam(required = false) String authorId, @CookieValue(required = true) Cookie USERID) {
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
         HttpStatus status;
-
         List<Tuple> tuples;
         if (authorId == null) {
             tuples = ps.getAll();
         }
         else {
             tuples = ps.getAllFromUser(authorId);
+        }
+
+        try {
+            for (Tuple t : tuples) {
+                Map<String, Object> json = new HashMap<>();
+                post = (Post) (t.get(0));
+                userLike = ls.getUserlikePost(post.getId(), USERID.getValue());
+
+                json.put("post", post);
+                json.put("commentCount", t.get(1));
+                json.put("likeCount", t.get(2));
+                json.put("userLike", userLike);
+
+                list.add(json);
+            }
+            status = HttpStatus.OK;
+        }
+        catch (Exception e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return new ResponseEntity<>(list, status);
+    }
+    @GetMapping("publication/limit")
+    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = true) int limit, @RequestParam(required = false) String authorId, @CookieValue(required = true) Cookie USERID) {
+        List<Object> list = new ArrayList<>();
+        Post post;
+        boolean userLike;
+        HttpStatus status;
+        List<Tuple> tuples;
+        if (authorId == null) {
+            tuples = ps.getAllLimit(limit);
+        }
+        else {
+            tuples = ps.getAllFromUserLimit(authorId, limit);
         }
 
         try {
@@ -210,7 +238,6 @@ public class MainController {
     }
 
     // TODO: modify file name of image when on server to get inique image name because it may cause troubles
-    
     // TODO: delete image from server when image removed from front end on cancel action
     @GetMapping("image")
     public ResponseEntity<ByteArrayResource> downloadImage(@RequestParam(required = true) String img) throws IOException {
@@ -250,7 +277,7 @@ public class MainController {
         return new ResponseEntity<>(ns.getNotifsFromOwner(USERID.getValue()), HttpStatus.OK);
     }
     @PatchMapping("notif")
-    public ResponseEntity<String> readAllNotifs( @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> readAllNotifs(@CookieValue(required = true) Cookie USERID) {
 
         ns.readAllFromUser(USERID.getValue());
         return new ResponseEntity<>("all notifications read successfully", HttpStatus.OK);
@@ -272,10 +299,13 @@ public class MainController {
         return new ResponseEntity<>("notification has been deleted successfully", HttpStatus.OK);
     }
 
-    
     @GetMapping("user")
     public ResponseEntity<Users> getUser(@CookieValue(required = true) Cookie USERID) {
-        return new ResponseEntity<>( us.findById(USERID.getValue()).get(), HttpStatus.OK);
+        return new ResponseEntity<>(us.findById(USERID.getValue()).get(), HttpStatus.OK);
+    }
+    @GetMapping("user/simple")
+    public ResponseEntity<List<Object>> getAllUsuersSimple() {
+        return new ResponseEntity<>(us.getAllSimple(), HttpStatus.OK);
     }
     @Transactional
     @PatchMapping("user/dark")
@@ -382,5 +412,4 @@ public class MainController {
         USERID.setValue(username);
         return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }
-
 }

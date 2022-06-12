@@ -8,6 +8,8 @@ import com.redazz.openeyz.models.Post;
 import com.redazz.openeyz.repos.PostRepo;
 import java.util.List;
 import java.util.Optional;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ import org.springframework.stereotype.Service;
 public class PostService implements Services<Post, Long> {
     @Autowired
     PostRepo pr;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     // crud services
     @Override
@@ -53,6 +58,14 @@ public class PostService implements Services<Post, Long> {
     }
     public List<Tuple> getAllFromUser(String username) {
         return pr.getAllFromUser(username);
+    }
+    public List<Tuple> getAllLimit(int limit) {
+        return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id  group by p.id order by p.creation desc",
+                Tuple.class).setMaxResults(limit).getResultList();
+    }
+    public List<Tuple> getAllFromUserLimit(String username, int limit) {
+        return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.author.username = '" + username + "' group by p.id order by p.creation desc",
+                Tuple.class).setMaxResults(limit).getResultList();
     }
 
 }
