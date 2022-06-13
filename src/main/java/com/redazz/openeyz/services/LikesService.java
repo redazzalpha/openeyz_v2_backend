@@ -53,8 +53,11 @@ public class LikesService implements Services<Likes, Long> {
     public Optional<Likes> findByAuthorAndPost(Users author, Post post) {
         return lr.findByAuthorAndPost(author, post);
     }
-
     
+    public int getCount(long postId) {
+        return lr.getCount(postId);
+    }
+
     public boolean getUserlikePost(long postId, String userId) {
         boolean like = false;
         if(lr.getUserlikePost(postId, userId) > 0)

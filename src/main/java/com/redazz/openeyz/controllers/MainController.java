@@ -136,7 +136,7 @@ public class MainController {
         return new ResponseEntity<>(list, status);
     }
     @GetMapping("publication/limit")
-    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = true) int limit, @RequestParam(required = false) String authorId, @RequestParam(required = false) String creation, @CookieValue(required = true) Cookie USERID) {        
+    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = false) String authorId, @RequestParam(required = true) int limit, @RequestParam(required = false) String creation, @CookieValue(required = true) Cookie USERID) {        
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
@@ -148,7 +148,7 @@ public class MainController {
             tuples = ps.getAllLimit(limit, creation);
         }
         else {
-            tuples = ps.getAllFromUserLimit(authorId, limit);
+            tuples = ps.getAllFromUserLimit(authorId, limit, creation);
         }
 
         try {
@@ -237,6 +237,10 @@ public class MainController {
         }
 
         return new ResponseEntity<>(message, status);
+    }
+    @GetMapping("like/count")
+    public ResponseEntity<Integer> getCount(@RequestParam(required = true) long postId) {
+        return new ResponseEntity<>(ls.getCount(postId), HttpStatus.OK);
     }
 
     // TODO: modify file name of image when on server to get inique image name because it may cause troubles

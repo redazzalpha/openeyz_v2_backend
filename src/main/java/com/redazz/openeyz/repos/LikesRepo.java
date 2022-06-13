@@ -21,5 +21,10 @@ public interface LikesRepo extends JpaRepository<Likes, Long> {
     @Query("select count(distinct l) from Post p left join Likes l on l.post.id = :postId where l.author.id = :userId")
     public int getUserlikePost(long postId, String userId);
     
+    @Query("select count(l) from Likes l where l.post.id = :postId")
+    public int getCount(long postId);
+    
     public Optional<Likes> findByAuthorAndPost(Users author, Post post);
+    
+    
 }
