@@ -213,6 +213,13 @@ public class MainController {
 
         return new ResponseEntity<>("Comment successfully created", HttpStatus.CREATED);
     }
+    @DeleteMapping("comment/delete")
+    public ResponseEntity<String> deleteComment(@RequestParam(required = true) long commentId, @CookieValue(required = true) Cookie USERID) {
+        cs.deleteById(commentId);
+        return new ResponseEntity<>("comment successfully deleted", HttpStatus.OK);        
+    }
+
+    
 
     @Transactional
     @PostMapping("like")
