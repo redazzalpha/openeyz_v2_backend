@@ -136,14 +136,16 @@ public class MainController {
         return new ResponseEntity<>(list, status);
     }
     @GetMapping("publication/limit")
-    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = true) int limit, @RequestParam(required = false) String authorId, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = true) int limit, @RequestParam(required = false) String authorId, @RequestParam(required = false) String creation, @CookieValue(required = true) Cookie USERID) {        
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
         HttpStatus status;
         List<Tuple> tuples;
+        
+        
         if (authorId == null) {
-            tuples = ps.getAllLimit(limit);
+            tuples = ps.getAllLimit(limit, creation);
         }
         else {
             tuples = ps.getAllFromUserLimit(authorId, limit);

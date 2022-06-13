@@ -56,12 +56,24 @@ public class PostService implements Services<Post, Long> {
     public List<Tuple> getAll() {
         return pr.getAll();
     }
+    public List<Tuple> getAllLimit(int limit, String creation) {
+        System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz " + creation);
+
+        if (creation == null) {
+            return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.creation < current_timestamp group by p.id order by p.creation desc",
+                    Tuple.class).setMaxResults(limit).getResultList();
+
+        }
+        else {
+
+            return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.creation < '" + creation + "' group by p.id order by p.creation desc",
+                    Tuple.class).setMaxResults(limit).getResultList();
+
+        }
+
+    }
     public List<Tuple> getAllFromUser(String username) {
         return pr.getAllFromUser(username);
-    }
-    public List<Tuple> getAllLimit(int limit) {
-        return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id  group by p.id order by p.creation desc",
-                Tuple.class).setMaxResults(limit).getResultList();
     }
     public List<Tuple> getAllFromUserLimit(String username, int limit) {
         return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.author.username = '" + username + "' group by p.id order by p.creation desc",
