@@ -101,6 +101,7 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
 
+    @Transactional
     @GetMapping("publication")
     public ResponseEntity<List<Object>> getAllPost(@RequestParam(required = false) String authorId, @CookieValue(required = true) Cookie USERID) {
         List<Object> list = new ArrayList<>();
