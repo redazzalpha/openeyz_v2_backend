@@ -144,7 +144,6 @@ public class MainController {
         HttpStatus status;
         List<Tuple> tuples;
         
-        
         if (authorId == null) {
             tuples = ps.getAllLimit(limit, creation);
         }
@@ -162,6 +161,9 @@ public class MainController {
                 json.put("commentCount", t.get(1));
                 json.put("likeCount", t.get(2));
                 json.put("userLike", userLike);
+                
+                
+                System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz " + t.get(2));
 
                 list.add(json);
             }

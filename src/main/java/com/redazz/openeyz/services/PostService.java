@@ -59,13 +59,13 @@ public class PostService implements Services<Post, Long> {
     public List<Tuple> getAllLimit(int limit, String creation) {
 
         if (creation == null) {
-            return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.creation < current_timestamp group by p.id order by p.creation desc",
+            return entityManager.createQuery("select p, count(c), count(distinct l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.creation < current_timestamp group by p.id order by p.creation desc",
                     Tuple.class).setMaxResults(limit).getResultList();
 
         }
         else {
 
-            return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.creation < '" + creation + "' group by p.id order by p.creation desc",
+            return entityManager.createQuery("select p, count(c), count(distinct l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.creation < '" + creation + "' group by p.id order by p.creation desc",
                     Tuple.class).setMaxResults(limit).getResultList();
 
         }
@@ -76,12 +76,12 @@ public class PostService implements Services<Post, Long> {
     }
     public List<Tuple> getAllFromUserLimit(String username, int limit, String creation) {
         if (creation == null) {
-            return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.author.username = '" + username + "' and p.creation < current_timestamp group by p.id order by p.creation desc",
+            return entityManager.createQuery("select p, count(c), count(distinct l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.author.username = '" + username + "' and p.creation < current_timestamp group by p.id order by p.creation desc",
                     Tuple.class).setMaxResults(limit).getResultList();
         }
         else {
 
-            return entityManager.createQuery("select p, count(c), count(l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.author.username = '" + username + "' and p.creation < '" + creation + "' group by p.id order by p.creation desc",
+            return entityManager.createQuery("select p, count(c), count(distinct l) from Post p left join Comment c on c.post.id = p.id left join Likes l on l.post.id = p.id where p.author.username = '" + username + "' and p.creation < '" + creation + "' group by p.id order by p.creation desc",
                     Tuple.class).setMaxResults(limit).getResultList();
         }
     }
