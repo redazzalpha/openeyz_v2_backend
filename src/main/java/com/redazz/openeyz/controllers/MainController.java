@@ -161,10 +161,6 @@ public class MainController {
                 json.put("commentCount", t.get(1));
                 json.put("likeCount", t.get(2));
                 json.put("userLike", userLike);
-                
-                
-                System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz " + t.get(2));
-
                 list.add(json);
             }
             status = HttpStatus.OK;
@@ -201,6 +197,10 @@ public class MainController {
     @GetMapping("comment")
     public ResponseEntity<List<Comment>> getAllComment(@RequestParam(required = true) long postId) {
         return new ResponseEntity<>(cs.getAllFromPost(postId), HttpStatus.OK);
+    }
+    @GetMapping("comment/limit")
+    public ResponseEntity<List<Comment>> getAllCommentLimit(@RequestParam(required = true) long postId, @RequestParam(required = true) int limit, @RequestParam(required = false) String creation) {
+        return new ResponseEntity<>(cs.getAllFromPostLimit(postId, limit, creation), HttpStatus.OK);
     }
     @Transactional
     @PostMapping("comment")
@@ -360,7 +360,7 @@ public class MainController {
         boolean match = encoder.matches(password, user.getPassword());
 
         if (match) {
-            hash = encoder.encode(password);
+            hash = encoder.encode(password1);
             us.updatePassword(hash, USERID.getValue());
             message = "Password was successfully modified";
             status = HttpStatus.OK;
