@@ -53,6 +53,7 @@ public class Users implements Serializable {
     @Column(columnDefinition = "boolean default true", nullable = false)
     private boolean state = true;
 
+    @NonNull
     @Column(nullable = true, columnDefinition = "varchar(255) default 'no description for the moment'")
     private String description;
 

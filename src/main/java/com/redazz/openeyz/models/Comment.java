@@ -41,7 +41,7 @@ public class Comment  implements Serializable {
     private long id;
     
     @NonNull
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(255) not null")
     private String content;
     
     @CreationTimestamp

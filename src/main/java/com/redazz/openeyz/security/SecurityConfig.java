@@ -107,14 +107,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
         @Override
         public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-            String username, lname, name, password;
+            String username, lname, name, password, description;
             username = request.getParameter("username");
             password = request.getParameter("password");
             lname = request.getParameter("lname");
             name = request.getParameter("name");
+            description = request.getParameter("description");
 
             try {
-                us.save(new Users(username, lname, name, password));
+                us.save(new Users(username, lname, name, password, description));
                 us.addRoleToUser(username, RoleEnum.USER);
             }
             catch (Exception e) {
