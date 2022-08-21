@@ -210,9 +210,9 @@ public class MainController {
         Comment com = new Comment(comment, post, author);
 
         cs.save(com);
-        
+
         Users owner = com.getPost().getAuthor();
-        if(!author.getUsername().equals(owner.getUsername())) {
+        if (!author.getUsername().equals(owner.getUsername())) {
             Notif notif = new Notif(false, owner, com);
             ns.save(notif);
         }
@@ -390,6 +390,42 @@ public class MainController {
         }
         return new ResponseEntity<>(message, status);
     }
+    @GetMapping("user/data")
+    public ResponseEntity<Users> getUserData(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) String username) {
+
+        Users user = us.findById(username).get();
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    
+    
+    
+    
+    
+    // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
+    @PatchMapping("user/username")
+    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, @CookieValue(required = true) Cookie USERID, HttpServletResponse response) {
+        us.updateUsername(username, USERID.getValue());
+        USERID.setValue(username);
+        return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
+    }
+    
+    
+    
+//    @PatchMapping("user/state")
+//    public ResponseEntity<Users> updateState(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) boolean state, @RequestParam(required = true) String username) {
+//        us.updateState(state, username);
+//        return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
+//    }
+//    @PatchMapping("user/role")
+//    public ResponseEntity<Users> updateRole(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) String roleName, @RequestParam(required = true) String username) {
+//        us.updateRole(roleName, username);
+//        return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
+//    }
+    
+    
+    
+    
     // TODO: got to check better security here and everywhere when perform any action
     @DeleteMapping("user/delete")
     public ResponseEntity<Map<String, Object>> deleteAccount(@CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID, HttpServletResponse response) {
@@ -422,31 +458,4 @@ public class MainController {
 
         return new ResponseEntity<>(json, headers, HttpStatus.OK);
     }
-    // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
-    @PatchMapping("user/username")
-    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, @CookieValue(required = true) Cookie USERID, HttpServletResponse response) {
-        us.updateUsername(username, USERID.getValue());
-        USERID.setValue(username);
-        return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
-    }
-
-    @GetMapping("user/data")
-    public ResponseEntity<Users> getUserData(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) String username) {
-
-        Users user = us.findById(username).get();
-        return new ResponseEntity<>(user, HttpStatus.OK);
-    }
-    
-    @PostMapping("user/state")
-    public ResponseEntity<Users> updateState(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) boolean state, @RequestParam  (required = true) String username) {
-        us.updateState(state, username);
-        return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
-    }
-    @PostMapping("user/role")
-    public ResponseEntity<Users> updateRole(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) String roleName, @RequestParam(required = true) String username) {
-        us.updateRole(roleName, username);
-        return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
-    }
-
-
 }
