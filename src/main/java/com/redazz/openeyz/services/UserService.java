@@ -86,7 +86,14 @@ public class UserService implements Services<Users, String> {
         user.getRoles().add(role);
         ur.save(user);
     }
-
+    public void updateState(boolean state, String userId) {
+        ur.updateState(state, userId);
+    }
+    public void updateRole(String roleName, String userId) {
+        ur.updateRole(roleName, userId);        
+    }
+    
+    // TODO: guess there is problem to modify username to check 
     public void updateUsername(String username, String userId) {
         ur.updateUsername(username, userId);
     }

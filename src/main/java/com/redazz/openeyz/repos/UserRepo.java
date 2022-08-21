@@ -17,16 +17,16 @@ import org.springframework.stereotype.Repository;
  * @author kyzer
  */
 @Repository
-public interface UserRepo extends JpaRepository<Users, String> {    
+public interface UserRepo extends JpaRepository<Users, String> {
     // TODO: CHANGE type of sent object cause deos not respect convention need get map<string, value> as json insted of get list <object> as list tuple
-    @Query(value="select name, avatar_src, role, users.username from users left join user_roles on users.username = user_roles.username order by name", nativeQuery = true)
+    @Query(value = "select name, avatar_src, role, users.username from users left join user_roles on users.username = user_roles.username order by name", nativeQuery = true)
     public List<Object> getAllSimple();
-    
+
     //important to make a update query must add @transactional and @modifying
     @Modifying
     @Transactional
     @Query("update Users set dark = :dark where username = :userId")
-    public void updateDark(boolean  dark, String userId);
+    public void updateDark(boolean dark, String userId);
 
     @Modifying
     @Transactional
@@ -58,4 +58,15 @@ public interface UserRepo extends JpaRepository<Users, String> {
     @Transactional
     @Query("update Users set username = :username where username = :userId")
     public void updateUsername(String username, String userId);
+    
+    @Modifying
+    @Transactional
+    @Query("update Users set state = :state where username = :userId")
+    public void updateState(boolean state, String userId);
+    
+    @Modifying
+    @Transactional
+    @Query(value = "update user_roles set role = :roleName where username = :userId", nativeQuery = true)
+    public void updateRole(String roleName, String userId);
+
 }

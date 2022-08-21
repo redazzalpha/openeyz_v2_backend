@@ -137,13 +137,13 @@ public class MainController {
         return new ResponseEntity<>(list, status);
     }
     @GetMapping("publication/limit")
-    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = false) String authorId, @RequestParam(required = true) int limit, @RequestParam(required = false) String creation, @CookieValue(required = true) Cookie USERID) {        
+    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = false) String authorId, @RequestParam(required = true) int limit, @RequestParam(required = false) String creation, @CookieValue(required = true) Cookie USERID) {
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
         HttpStatus status;
         List<Tuple> tuples;
-        
+
         if (authorId == null) {
             tuples = ps.getAllLimit(limit, creation);
         }
@@ -206,23 +206,24 @@ public class MainController {
     @PostMapping("comment")
     public ResponseEntity<String> postComment(@RequestParam(required = true) String comment, @RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
         Post post = ps.findById(postId).get();
-        Users user = us.findById(USERID.getValue()).get();
-        Comment com = new Comment(comment, post, user);
+        Users author = us.findById(USERID.getValue()).get();
+        Comment com = new Comment(comment, post, author);
 
         cs.save(com);
-
-        Notif notif = new Notif(false, com.getPost().getAuthor(), com);
-        ns.save(notif);
+        
+        Users owner = com.getPost().getAuthor();
+        if(!author.getUsername().equals(owner.getUsername())) {
+            Notif notif = new Notif(false, owner, com);
+            ns.save(notif);
+        }
 
         return new ResponseEntity<>("Comment successfully created", HttpStatus.CREATED);
     }
     @DeleteMapping("comment/delete")
     public ResponseEntity<String> deleteComment(@RequestParam(required = true) long commentId, @CookieValue(required = true) Cookie USERID) {
         cs.deleteById(commentId);
-        return new ResponseEntity<>("comment successfully deleted", HttpStatus.OK);        
+        return new ResponseEntity<>("comment successfully deleted", HttpStatus.OK);
     }
-
-    
 
     @Transactional
     @PostMapping("like")
@@ -428,4 +429,24 @@ public class MainController {
         USERID.setValue(username);
         return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }
+
+    @GetMapping("user/data")
+    public ResponseEntity<Users> getUserData(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) String username) {
+
+        Users user = us.findById(username).get();
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+    
+    @PostMapping("user/state")
+    public ResponseEntity<Users> updateState(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) boolean state, @RequestParam  (required = true) String username) {
+        us.updateState(state, username);
+        return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
+    }
+    @PostMapping("user/role")
+    public ResponseEntity<Users> updateRole(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) String roleName, @RequestParam(required = true) String username) {
+        us.updateRole(roleName, username);
+        return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
+    }
+
+
 }
