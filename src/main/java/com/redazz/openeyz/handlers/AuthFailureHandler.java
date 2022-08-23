@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.redazz.openeyz.beans;
+package com.redazz.openeyz.handlers;
 
 import com.redazz.openeyz.defines.Define;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * @author kyzer
  */
 @Component
-public class AuthFailure extends SimpleUrlAuthenticationFailureHandler {
+public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         super.setUseForward(true);

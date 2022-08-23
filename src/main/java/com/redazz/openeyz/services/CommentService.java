@@ -6,13 +6,10 @@ package com.redazz.openeyz.services;
 
 import com.redazz.openeyz.models.Comment;
 import com.redazz.openeyz.repos.CommentRepo;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

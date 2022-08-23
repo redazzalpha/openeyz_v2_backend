@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import javax.persistence.Tuple;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -189,9 +190,33 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
     @DeleteMapping("publication")
-    public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId) {
-        ps.deleteById(postId);
-        return new ResponseEntity<>("", HttpStatus.OK);
+    public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
+
+            Users currentUser = us.findById(USERID.getValue()).get();
+            String currentUserRole = currentUser.getRoles().get(0).getRoleName().toString();
+            Post post = ps.findById(postId).get();
+            String postAuthor = post.getAuthor().getUsername();
+            
+            deleteHandler(currentUser, post, (t) -> {
+                ps.deleteById(t);
+                return null; 
+            });
+        try {
+
+            
+//            boolean isSupervisor = currentUserRole.equals("SUPERADMIN") || currentUserRole.equals("ADMIN");
+//            boolean isOwner = currentUser.getUsername().equals(postAuthor);
+//            if (isOwner || isSupervisor) {
+//                ps.deleteById(postId);
+//            }
+//            else {
+//                return new ResponseEntity<>("User is not authorized to do this action", HttpStatus.FORBIDDEN);
+//            }
+        }
+        catch (Exception e) {
+            return new ResponseEntity<>("User or post was not found", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("publication successfully delete", HttpStatus.OK);
     }
 
     @GetMapping("comment")
@@ -213,7 +238,7 @@ public class MainController {
 
         Users owner = com.getPost().getAuthor();
         if (!author.getUsername().equals(owner.getUsername())) {
-            Notif notif = new Notif(false, owner, com);
+            Notif notif = new Notif(false, owner, author, com);
             ns.save(notif);
         }
 
@@ -271,7 +296,7 @@ public class MainController {
         return new ResponseEntity<>(image, status);
     }
     @PostMapping("image")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) {
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file, @CookieValue(required = true) Cookie USERID) {
         Map<String, String> json = new HashMap<>();
         HttpStatus status;
         try {
@@ -397,11 +422,6 @@ public class MainController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    
-    
-    
-    
-    
     // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
     @PatchMapping("user/username")
     public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, @CookieValue(required = true) Cookie USERID, HttpServletResponse response) {
@@ -409,23 +429,6 @@ public class MainController {
         USERID.setValue(username);
         return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }
-    
-    
-    
-//    @PatchMapping("user/state")
-//    public ResponseEntity<Users> updateState(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) boolean state, @RequestParam(required = true) String username) {
-//        us.updateState(state, username);
-//        return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
-//    }
-//    @PatchMapping("user/role")
-//    public ResponseEntity<Users> updateRole(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) String roleName, @RequestParam(required = true) String username) {
-//        us.updateRole(roleName, username);
-//        return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
-//    }
-    
-    
-    
-    
     // TODO: got to check better security here and everywhere when perform any action
     @DeleteMapping("user/delete")
     public ResponseEntity<Map<String, Object>> deleteAccount(@CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID, HttpServletResponse response) {
@@ -457,5 +460,19 @@ public class MainController {
         us.deleteById(username);
 
         return new ResponseEntity<>(json, headers, HttpStatus.OK);
+    }
+
+    private boolean deleteHandler(Users currentUser, Post post, Function<Long, Void> callback) {
+        boolean isSuccess = false;
+        String currentUserRole = currentUser.getRoles().get(0).getRoleName().toString();
+        String postAuthor = post.getAuthor().getUsername();
+        boolean isSupervisor = currentUserRole.equals("SUPERADMIN") || currentUserRole.equals("ADMIN");
+        boolean isOwner = currentUser.getUsername().equals(postAuthor);
+        if (isOwner || isSupervisor) {
+            callback.apply((post.getId()));
+            isSuccess = true;
+        }
+        
+        return isSuccess;
     }
 }

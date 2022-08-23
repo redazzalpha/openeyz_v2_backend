@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.redazz.openeyz.beans;
+package com.redazz.openeyz.handlers;
 
 import com.redazz.openeyz.defines.Define;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * @author kyzer
  */
 @Component
-public class AuthSuccess implements AuthenticationSuccessHandler {
+public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         String username = request.getParameter("username");

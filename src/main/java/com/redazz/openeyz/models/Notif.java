@@ -35,18 +35,24 @@ public class Notif implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    
+
     @NonNull
     @Column(columnDefinition = "boolean default false", nullable = false)
     Boolean read;
-    
+
     //relationships
     @NonNull
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "owner_id", referencedColumnName = "username")
     private Users owner;
-    
+
+    @NonNull
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "author_id", referencedColumnName = "username")
+    private Users author;
+
     @NonNull
     @OneToOne
     @OnDelete(action = OnDeleteAction.CASCADE)

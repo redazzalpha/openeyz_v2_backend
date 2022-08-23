@@ -27,7 +27,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class JwTokenUtils {
-    @Autowired UserService us;
+    @Autowired
+    UserService us;
     // Key is hardcoded here for simplicity. 
     // Ideally this will get loaded from env configuration/secret vault
     @Value("${jwt.secret}")
@@ -42,25 +43,25 @@ public class JwTokenUtils {
         Instant now = Instant.now();
         Users user = us.findById(username).get();
         String jwtToken = Jwts.builder()
-            .claim("username", username)
-            .claim("data", user)
-            .setSubject(username)
-            .setId(UUID.randomUUID().toString())
-            .setIssuedAt(Date.from(now))
-            .setExpiration(Date.from(now.plus(30l, ChronoUnit.DAYS)))
-            .signWith(SignatureAlgorithm.HS256, hmacKey)
-            .compact();
+                .claim("username", username)
+                .claim("data", user)
+                .setSubject(username)
+                .setId(UUID.randomUUID().toString())
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plus(30l, ChronoUnit.DAYS)))
+                .signWith(SignatureAlgorithm.HS256, hmacKey)
+                .compact();
 
         return jwtToken;
     }
     public String encode() {
         Instant now = Instant.now();
         String jwtToken = Jwts.builder()
-            .setId(UUID.randomUUID().toString())
-            .setIssuedAt(Date.from(now))
-            .setExpiration(Date.from(now))
-            .signWith(SignatureAlgorithm.HS256, hmacKey)
-            .compact();
+                .setId(UUID.randomUUID().toString())
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now))
+                .signWith(SignatureAlgorithm.HS256, hmacKey)
+                .compact();
 
         return jwtToken;
     }
