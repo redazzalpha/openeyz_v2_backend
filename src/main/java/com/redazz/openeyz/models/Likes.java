@@ -5,14 +5,13 @@
 package com.redazz.openeyz.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.redazz.openeyz.classes.PublicationBase;
 import java.io.Serializable;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +27,14 @@ import org.hibernate.annotations.OnDeleteAction;
 @RequiredArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(value = "id", allowGetters = true)
-public class Likes implements Serializable {
-    // properties
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+@EqualsAndHashCode(callSuper = false)
+public class Likes extends PublicationBase implements Serializable {
+    
+    // construcors
+    public Likes(Post post, Users author) {
+        this.post = post;
+        this.author = author;
+    }
     
     //relationships
     @NonNull
@@ -40,9 +42,4 @@ public class Likes implements Serializable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "post_id", referencedColumnName = "id")
     private Post post;
-    
-    @NonNull
-    @ManyToOne
-    @JoinColumn(name = "author_id", referencedColumnName = "username")
-    private Users author;
 }

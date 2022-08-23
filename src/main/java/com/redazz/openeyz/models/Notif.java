@@ -5,16 +5,15 @@
 package com.redazz.openeyz.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.redazz.openeyz.classes.PublicationBase;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -30,28 +29,26 @@ import org.hibernate.annotations.OnDeleteAction;
 @RequiredArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(value = "id", allowGetters = true)
-public class Notif implements Serializable {
+@EqualsAndHashCode(callSuper = false)
+public class Notif extends PublicationBase implements Serializable {
     // properties
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
     @NonNull
     @Column(columnDefinition = "boolean default false", nullable = false)
     Boolean read;
+    
+    
+    public Notif(boolean read, Users owner, Comment comment, Users author) {
+        this.read = read;
+        this.owner = owner;
+        this.comment = comment;
+        this.author = author;
+    }
 
-    //relationships
     @NonNull
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "owner_id", referencedColumnName = "username")
     private Users owner;
-
-    @NonNull
-    @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "author_id", referencedColumnName = "username")
-    private Users author;
 
     @NonNull
     @OneToOne

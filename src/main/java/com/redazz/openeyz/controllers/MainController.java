@@ -192,18 +192,20 @@ public class MainController {
     @DeleteMapping("publication")
     public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
 
-            Users currentUser = us.findById(USERID.getValue()).get();
-            String currentUserRole = currentUser.getRoles().get(0).getRoleName().toString();
-            Post post = ps.findById(postId).get();
-            String postAuthor = post.getAuthor().getUsername();
-            
-            deleteHandler(currentUser, post, (t) -> {
-                ps.deleteById(t);
-                return null; 
-            });
-        try {
+        ps.deleteById(postId);
+        
+//        Users currentUser = us.findById(USERID.getValue()).get();
+//        Post post = ps.findById(postId).get();
 
-            
+
+//        deleteHandler(currentUser, post, (t) -> {
+//            ps.deleteById(t);
+//            return null;
+//        });
+
+
+//        try {
+//
 //            boolean isSupervisor = currentUserRole.equals("SUPERADMIN") || currentUserRole.equals("ADMIN");
 //            boolean isOwner = currentUser.getUsername().equals(postAuthor);
 //            if (isOwner || isSupervisor) {
@@ -212,10 +214,12 @@ public class MainController {
 //            else {
 //                return new ResponseEntity<>("User is not authorized to do this action", HttpStatus.FORBIDDEN);
 //            }
-        }
-        catch (Exception e) {
-            return new ResponseEntity<>("User or post was not found", HttpStatus.NOT_FOUND);
-        }
+//        }
+//        catch (Exception e) {
+//            return new ResponseEntity<>("User or post was not found", HttpStatus.NOT_FOUND);
+//        }
+
+
         return new ResponseEntity<>("publication successfully delete", HttpStatus.OK);
     }
 
@@ -238,7 +242,7 @@ public class MainController {
 
         Users owner = com.getPost().getAuthor();
         if (!author.getUsername().equals(owner.getUsername())) {
-            Notif notif = new Notif(false, owner, author, com);
+            Notif notif = new Notif(false, owner, com, author);
             ns.save(notif);
         }
 
@@ -472,7 +476,7 @@ public class MainController {
             callback.apply((post.getId()));
             isSuccess = true;
         }
-        
+
         return isSuccess;
     }
 }
