@@ -39,5 +39,4 @@ public abstract class PublicationComponent {
     public Users getAuthor() {
         return author;
     }
-
 }

@@ -5,12 +5,12 @@
 package com.redazz.openeyz.controllers;
 
 import com.redazz.openeyz.Exceptions.DataNotFoundException;
-import com.redazz.openeyz.Exceptions.DeleteException;
 import com.redazz.openeyz.Exceptions.UnauthorizedException;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.classes.PublicationComponent;
 import com.redazz.openeyz.defines.Define;
+import com.redazz.openeyz.handlers.ActionHandler;
 import com.redazz.openeyz.models.Comment;
 import com.redazz.openeyz.models.Likes;
 import com.redazz.openeyz.models.Notif;
@@ -38,8 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -76,6 +74,8 @@ public class MainController {
     JwTokenUtils jwt;
     @Autowired
     Encoder encoder;
+    @Autowired
+    ActionHandler actionHandler;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
@@ -197,28 +197,16 @@ public class MainController {
     }
     @DeleteMapping("publication")
     public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
-
         try {
             Post post = ps.findById(postId).get();
-            actionHandler(USERID.getValue(), post, (idPost) -> {
+            return actionHandler.run(USERID.getValue(), post, (idPost) -> {
                 ps.deleteById(idPost);
                 return null;
             });
         }
-        catch (UnauthorizedException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
-        }
-        catch (DataNotFoundException e) {
+        catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
-        catch (RuntimeException e) {
-            return new ResponseEntity<>("post to delete was not found in database", HttpStatus.NOT_FOUND);
-        }
-        catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        
-        return new ResponseEntity<>("publication successfully delete", HttpStatus.OK);
     }
 
     @GetMapping("comment")
@@ -248,8 +236,16 @@ public class MainController {
     }
     @DeleteMapping("comment/delete")
     public ResponseEntity<String> deleteComment(@RequestParam(required = true) long commentId, @CookieValue(required = true) Cookie USERID) {
-        cs.deleteById(commentId);
-        return new ResponseEntity<>("comment successfully deleted", HttpStatus.OK);
+        try {
+            Comment comment = cs.findById(commentId).get();
+            return actionHandler.run(USERID.getValue(), comment, (idComment) -> {
+                cs.deleteById(idComment);
+                return null;
+            });
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @Transactional
@@ -334,13 +330,29 @@ public class MainController {
     @PatchMapping("notif/one")
     public ResponseEntity<String> readNotifOne(@RequestParam(required = true) long notifId, @CookieValue(required = true) Cookie USERID) {
 
-        ns.readOneFromUser(notifId);
-        return new ResponseEntity<>("notification read successfully", HttpStatus.OK);
+        try {
+            Notif notif = ns.findById(notifId).get();
+            return actionHandler.run(USERID.getValue(), notif, (idNotif) -> {
+                ns.readOneFromUser(idNotif);
+                return null;
+            });
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
     @DeleteMapping("notif/one")
     public ResponseEntity<String> deleteNotifOne(@RequestParam(required = true) long notifId, @CookieValue(required = true) Cookie USERID) {
-        ns.deleteOneFromUser(notifId);
-        return new ResponseEntity<>("notification has been deleted successfully", HttpStatus.OK);
+        try {
+            Notif notif = ns.findById(notifId).get();
+            return actionHandler.run(USERID.getValue(), notif, (idNotif) -> {
+                ns.deleteById(idNotif);
+                return null;
+            });
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("user")
@@ -373,7 +385,7 @@ public class MainController {
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/password")
-    public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String password, @RequestParam(required = true) String password1, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword, @CookieValue(required = true) Cookie USERID) {
 
         String hash, message = "Invalid. Password does not match with the current";
         HttpStatus status = HttpStatus.UNAUTHORIZED;
@@ -385,10 +397,10 @@ public class MainController {
             return new ResponseEntity<>(message, status);
         }
 
-        boolean match = encoder.matches(password, user.getPassword());
+        boolean match = encoder.matches(currentPassword, user.getPassword());
 
         if (match) {
-            hash = encoder.encode(password1);
+            hash = encoder.encode(newPassword);
             us.updatePassword(hash, USERID.getValue());
             message = "Password was successfully modified";
             status = HttpStatus.OK;
@@ -434,7 +446,6 @@ public class MainController {
     // TODO: got to check better security here and everywhere when perform any action
     @DeleteMapping("user/delete")
     public ResponseEntity<Map<String, Object>> deleteAccount(@CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID, HttpServletResponse response) {
-        String username = USERID.getValue();
         ResponseCookie jsessionCookie = ResponseCookie.from(JSESSIONID.getName(), JSESSIONID.getValue())
                 .httpOnly(true)
                 .secure(false)
@@ -459,31 +470,8 @@ public class MainController {
         headers.add(HttpHeaders.SET_COOKIE, jsessionCookie.toString());
         headers.add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
 
-        us.deleteById(username);
+        us.deleteById(USERID.getValue());
 
         return new ResponseEntity<>(json, headers, HttpStatus.OK);
-    }
-
-    private <T extends PublicationComponent> void actionHandler(String currentUserId, T publicationComponent, Function<Long, Void> callback) throws UnauthorizedException, DataNotFoundException {
-        Users currentUser = null;
-        try {
-            currentUser = us.findById(currentUserId).get();
-            String currentUserRole = currentUser.getRoles().get(0).getRoleName().toString();
-            String postAuthor = publicationComponent.getAuthor().getUsername();
-            boolean isSupervisor = currentUserRole.equals("SUPERADMIN") || currentUserRole.equals("ADMIN");
-            boolean isOwner = currentUser.getUsername().equals(postAuthor);
-            if (isOwner || isSupervisor) {
-                callback.apply(publicationComponent.getId());
-            }
-            else {
-                throw new UnauthorizedException("-- UnauthorizedException: User is not authorized to do this action");
-            }
-        }
-        catch (RuntimeException e) {
-            if (currentUser == null) {
-                throw new DataNotFoundException("user was not found in database");
-            }
-            throw new DataNotFoundException(e.getMessage());
-        }
     }
 }

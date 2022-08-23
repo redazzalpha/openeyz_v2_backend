@@ -70,5 +70,4 @@ public class JwTokenUtils {
         Jws<Claims> jws = Jwts.parser().setSigningKey(hmacKey1).parseClaimsJws(token);
         return jws;
     }
-
 }
