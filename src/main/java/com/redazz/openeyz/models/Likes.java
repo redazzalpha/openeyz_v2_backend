@@ -5,7 +5,7 @@
 package com.redazz.openeyz.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.redazz.openeyz.classes.PublicationBase;
+import com.redazz.openeyz.classes.PublicationComponent;
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -28,7 +28,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @JsonIgnoreProperties(value = "id", allowGetters = true)
 @EqualsAndHashCode(callSuper = false)
-public class Likes extends PublicationBase implements Serializable {
+public class Likes extends PublicationComponent implements Serializable {
     
     // construcors
     public Likes(Post post, Users author) {

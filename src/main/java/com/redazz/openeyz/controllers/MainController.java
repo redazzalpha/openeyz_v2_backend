@@ -4,8 +4,12 @@
  */
 package com.redazz.openeyz.controllers;
 
+import com.redazz.openeyz.Exceptions.DataNotFoundException;
+import com.redazz.openeyz.Exceptions.DeleteException;
+import com.redazz.openeyz.Exceptions.UnauthorizedException;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
+import com.redazz.openeyz.classes.PublicationComponent;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.models.Comment;
 import com.redazz.openeyz.models.Likes;
@@ -34,6 +38,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -192,34 +198,26 @@ public class MainController {
     @DeleteMapping("publication")
     public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
 
-        ps.deleteById(postId);
+        try {
+            Post post = ps.findById(postId).get();
+            actionHandler(USERID.getValue(), post, (idPost) -> {
+                ps.deleteById(idPost);
+                return null;
+            });
+        }
+        catch (UnauthorizedException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+        catch (DataNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>("post to delete was not found in database", HttpStatus.NOT_FOUND);
+        }
+        catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         
-//        Users currentUser = us.findById(USERID.getValue()).get();
-//        Post post = ps.findById(postId).get();
-
-
-//        deleteHandler(currentUser, post, (t) -> {
-//            ps.deleteById(t);
-//            return null;
-//        });
-
-
-//        try {
-//
-//            boolean isSupervisor = currentUserRole.equals("SUPERADMIN") || currentUserRole.equals("ADMIN");
-//            boolean isOwner = currentUser.getUsername().equals(postAuthor);
-//            if (isOwner || isSupervisor) {
-//                ps.deleteById(postId);
-//            }
-//            else {
-//                return new ResponseEntity<>("User is not authorized to do this action", HttpStatus.FORBIDDEN);
-//            }
-//        }
-//        catch (Exception e) {
-//            return new ResponseEntity<>("User or post was not found", HttpStatus.NOT_FOUND);
-//        }
-
-
         return new ResponseEntity<>("publication successfully delete", HttpStatus.OK);
     }
 
@@ -466,17 +464,26 @@ public class MainController {
         return new ResponseEntity<>(json, headers, HttpStatus.OK);
     }
 
-    private boolean deleteHandler(Users currentUser, Post post, Function<Long, Void> callback) {
-        boolean isSuccess = false;
-        String currentUserRole = currentUser.getRoles().get(0).getRoleName().toString();
-        String postAuthor = post.getAuthor().getUsername();
-        boolean isSupervisor = currentUserRole.equals("SUPERADMIN") || currentUserRole.equals("ADMIN");
-        boolean isOwner = currentUser.getUsername().equals(postAuthor);
-        if (isOwner || isSupervisor) {
-            callback.apply((post.getId()));
-            isSuccess = true;
+    private <T extends PublicationComponent> void actionHandler(String currentUserId, T publicationComponent, Function<Long, Void> callback) throws UnauthorizedException, DataNotFoundException {
+        Users currentUser = null;
+        try {
+            currentUser = us.findById(currentUserId).get();
+            String currentUserRole = currentUser.getRoles().get(0).getRoleName().toString();
+            String postAuthor = publicationComponent.getAuthor().getUsername();
+            boolean isSupervisor = currentUserRole.equals("SUPERADMIN") || currentUserRole.equals("ADMIN");
+            boolean isOwner = currentUser.getUsername().equals(postAuthor);
+            if (isOwner || isSupervisor) {
+                callback.apply(publicationComponent.getId());
+            }
+            else {
+                throw new UnauthorizedException("-- UnauthorizedException: User is not authorized to do this action");
+            }
         }
-
-        return isSuccess;
+        catch (RuntimeException e) {
+            if (currentUser == null) {
+                throw new DataNotFoundException("user was not found in database");
+            }
+            throw new DataNotFoundException(e.getMessage());
+        }
     }
 }
