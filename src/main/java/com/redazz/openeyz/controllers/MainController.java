@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.persistence.Tuple;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -38,7 +39,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -78,17 +78,23 @@ public class MainController {
     public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
         String username = USERID.getValue();
         Map<String, Object> json = new HashMap<>();
-        Users user = us.findById(username).get();
-        String token = jwt.encode(username);
+        Optional<Users> user = us.findById(username);
 
-        json.put("token", token);
-        json.put("user", user);
+        if (user.isPresent()) {
+            String token = jwt.encode(username);
+            jwt.setExpiration(10);
+            String refreshToken = jwt.encode(username);
+
+            json.put("token", token);
+            json.put("refreshToken", refreshToken);
+            json.put("user", user.get());
+        }
         return new ResponseEntity<>(json, HttpStatus.OK);
     }
 
     @PostMapping("auth-failure")
     public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
-        
+
         String username = request.getParameter("username");
         String message;
         HttpStatus status;
@@ -112,6 +118,27 @@ public class MainController {
     @PostMapping("register-failure")
     public ResponseEntity<String> registerFailure(HttpServletRequest request, HttpServletResponse response) {
         return new ResponseEntity<>("user already exists", HttpStatus.UNAUTHORIZED);
+    }
+
+    @PostMapping("refresh")
+    public ResponseEntity<Map<String, Object>> refreshToken(@RequestParam(required = true) String refreshToken, @CookieValue(required = true) Cookie USERID) {
+
+        Map<String, Object> json = new HashMap<>();
+        try {
+            jwt.decode(refreshToken);
+            String username = USERID.getValue();
+            Optional<Users> user = us.findById(username);
+            if (user.isPresent()) {
+                String token = jwt.encode(username);
+                json.put("token", token);
+                json.put("refreshToken", refreshToken);
+                json.put("user", user.get());
+                return new ResponseEntity<>(json, HttpStatus.OK);
+            }
+        }
+        catch (Exception ex) {
+        }
+        return new ResponseEntity<>(json, HttpStatus.UNAUTHORIZED);
     }
 
     @Transactional

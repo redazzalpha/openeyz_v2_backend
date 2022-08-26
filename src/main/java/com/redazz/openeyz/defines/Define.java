@@ -12,6 +12,7 @@ public class Define {
     public static final String ROOT_URL = "/api";
     public static final String ADMIN_URL = "/admin";
     public static final String ACCESS_URL = ROOT_URL + "/access";
+    public static final String REFRESH_URL = ROOT_URL + "/refresh";
     public static final String AUTH_FAILURE_URL = ROOT_URL + "/auth-failure";
     public static final String REGISTER_FAILURE_URL = ROOT_URL + "/register-failure";
     public static final String UPLOAD_IMAGE_URL = ROOT_URL + "/image";

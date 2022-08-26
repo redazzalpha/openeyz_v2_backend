@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 public class JwTokenUtils {
     @Autowired
     UserService us;
+    private long expiration;
     // Key is hardcoded here for simplicity. 
     // Ideally this will get loaded from env configuration/secret vault
     @Value("${jwt.secret}")
@@ -37,8 +38,13 @@ public class JwTokenUtils {
 
     public JwTokenUtils() {
         hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
+        this.expiration = 1;
     }
-    // TODO: change validity expiration of the token when refresh token will be done  
+
+    public void setExpiration(long expiration) {
+        this.expiration = expiration;
+    }
+
     public String encode(String username) {
         Instant now = Instant.now();
         Users user = us.findById(username).get();
@@ -48,10 +54,10 @@ public class JwTokenUtils {
                 .setSubject(username)
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(30l, ChronoUnit.DAYS)))
+                .setExpiration(Date.from(now.plus(expiration, ChronoUnit.SECONDS)))
                 .signWith(SignatureAlgorithm.HS256, hmacKey)
                 .compact();
-
+        expiration = 1;
         return jwtToken;
     }
     public String encode() {

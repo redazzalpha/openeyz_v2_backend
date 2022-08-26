@@ -24,6 +24,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -58,10 +59,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .and()
                 .cors().configurationSource(request -> corsConfiguration(request));
-        http.authorizeHttpRequests()
-                .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
-                .antMatchers("*", "/api/**").hasAnyRole("SUPERADMIN", "ADMIN", "USER")
-                .antMatchers("*", "/admin/**").hasRole("SUPERADMIN");
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+//        http.authorizeHttpRequests()
+//                .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
+//                .antMatchers("*", "/api/**").hasAnyRole("SUPERADMIN", "ADMIN", "USER")
+//                .antMatchers("*", "/admin/**").hasRole("SUPERADMIN");
     }
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -119,7 +121,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     }
                 }
                 else {
-                    throw new AuthenticationException("user already exists") {};
+                    throw new AuthenticationException("user already exists") {
+                    };
                 }
             }
         }

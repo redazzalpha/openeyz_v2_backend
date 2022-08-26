@@ -20,7 +20,6 @@ import javax.servlet.http.HttpServletResponse;
  * @author kyzer
  */
 public class RequestFilter implements Filter {
-//    @Autowired
     private final JwTokenUtils jwt = new JwTokenUtils();
 
     @Override
@@ -28,15 +27,15 @@ public class RequestFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
-        boolean accessBase = req.getRequestURI().equals(Define.ROOT_URL);
-        boolean accessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.UPLOAD_IMAGE_URL) && req.getMethod().equals("GET");
+        boolean isAccessAuth = req.getRequestURI().equals(Define.ROOT_URL);
+        boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.UPLOAD_IMAGE_URL) && req.getMethod().equals("GET");
+        boolean isAccessRefresh = req.getRequestURI().equals(Define.REFRESH_URL);
+        boolean isCheckToken = !(isAccessAuth || isAccessDownloadImg || isAccessRefresh);
 
-        if (!(accessBase || accessDownloadImg)) {
-
+        if (isCheckToken) {
             String token = req.getHeader("Authorization").split("Bearer ")[1];
             try {
                 jwt.decode(token);
-
             }
             catch (Exception e) {
                 res.sendError(401, e.getMessage());
