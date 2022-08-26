@@ -22,7 +22,13 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         super.setUseForward(true);
-        super.setDefaultFailureUrl(Define.AUTH_FAILURE_URL);
+
+        if (exception.getMessage().equals("user already exists")) {
+            super.setDefaultFailureUrl(Define.REGISTER_FAILURE_URL);
+        }
+        else {
+            super.setDefaultFailureUrl(Define.AUTH_FAILURE_URL);
+        }
         super.onAuthenticationFailure(request, response, exception);
     }
 }

@@ -38,7 +38,7 @@ public class JwTokenUtils {
     public JwTokenUtils() {
         hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
     }
-    // TODO: change validity expiration of the token
+    // TODO: change validity expiration of the token when refresh token will be done  
     public String encode(String username) {
         Instant now = Instant.now();
         Users user = us.findById(username).get();

@@ -4,11 +4,8 @@
  */
 package com.redazz.openeyz.controllers;
 
-import com.redazz.openeyz.Exceptions.DataNotFoundException;
-import com.redazz.openeyz.Exceptions.UnauthorizedException;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
-import com.redazz.openeyz.classes.PublicationComponent;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.ActionHandler;
 import com.redazz.openeyz.models.Comment;
@@ -30,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import javax.persistence.Tuple;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +38,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -79,8 +76,6 @@ public class MainController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
-
-        // TODO: try to find solution to block this root on try to access when authentified
         String username = USERID.getValue();
         Map<String, Object> json = new HashMap<>();
         Users user = us.findById(username).get();
@@ -92,20 +87,31 @@ public class MainController {
     }
 
     @PostMapping("auth-failure")
-    public ResponseEntity<String> authError(HttpServletRequest request) {
+    public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
+        
         String username = request.getParameter("username");
         String message;
         HttpStatus status;
         try {
-            us.findById(username).get();
-            message = Define.MESSAGE_ERROR_PASSWORD;
-            status = HttpStatus.UNAUTHORIZED;
+            Users currentUser = us.findById(username).get();
+            if (!currentUser.getState()) {
+                message = Define.MESSAGE_ERROR_BANNED;
+                status = HttpStatus.UNAUTHORIZED;
+            }
+            else {
+                message = Define.MESSAGE_ERROR_PASSWORD;
+                status = HttpStatus.UNAUTHORIZED;
+            }
         }
         catch (Exception e) {
             message = Define.MESSAGE_ERROR_USERNAME;
             status = HttpStatus.NOT_FOUND;
         }
         return new ResponseEntity<>(message, status);
+    }
+    @PostMapping("register-failure")
+    public ResponseEntity<String> registerFailure(HttpServletRequest request, HttpServletResponse response) {
+        return new ResponseEntity<>("user already exists", HttpStatus.UNAUTHORIZED);
     }
 
     @Transactional
@@ -443,7 +449,6 @@ public class MainController {
         USERID.setValue(username);
         return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }
-    // TODO: got to check better security here and everywhere when perform any action
     @DeleteMapping("user/delete")
     public ResponseEntity<Map<String, Object>> deleteAccount(@CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID, HttpServletResponse response) {
         ResponseCookie jsessionCookie = ResponseCookie.from(JSESSIONID.getName(), JSESSIONID.getValue())

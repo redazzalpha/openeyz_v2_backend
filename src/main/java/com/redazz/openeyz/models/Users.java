@@ -72,4 +72,8 @@ public class Users implements Serializable {
         inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "roleName")
     )
     private List<Role> roles = new ArrayList<>();
+    
+    public boolean getState() {
+        return state;
+    }
 }

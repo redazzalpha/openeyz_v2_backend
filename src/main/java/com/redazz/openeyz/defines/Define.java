@@ -13,6 +13,7 @@ public class Define {
     public static final String ADMIN_URL = "/admin";
     public static final String ACCESS_URL = ROOT_URL + "/access";
     public static final String AUTH_FAILURE_URL = ROOT_URL + "/auth-failure";
+    public static final String REGISTER_FAILURE_URL = ROOT_URL + "/register-failure";
     public static final String UPLOAD_IMAGE_URL = ROOT_URL + "/image";
     public static final String ASSETS_DIRECTORY = "assets";
     public static final String ASSETS_USER_DIRECTORY = "assets/users";
@@ -31,6 +32,7 @@ public class Define {
     public static final String MESSAGE_AUTH_SUCCESS = "Auth success";
     public static final String MESSAGE_POST_SUCCESS = "Publication successfully posted";
     
+    public static final String MESSAGE_ERROR_BANNED = "your account has been disabled";
     public static final String MESSAGE_ERROR_USERNAME = "bad credentials user was not found";
     public static final String MESSAGE_ERROR_PASSWORD = "bad credentials check password";
     public static final String MESSAGE_ERROR_POST = "An error has occurred when try to post publication";

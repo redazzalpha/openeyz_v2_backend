@@ -34,7 +34,6 @@ public class OpeneyzApplication {
             rs.save(admin);
             rs.save(superadmin);
 
-            // TODO: remove possibility to add more than one role by creation one to one relation between users and role
             us.addRoleToUser(max.getUsername(), superadmin.getRoleName());
             us.addRoleToUser(alice.getUsername(), admin.getRoleName());
         };

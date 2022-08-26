@@ -5,8 +5,6 @@
 package com.redazz.openeyz.beans;
 
 import com.redazz.openeyz.defines.Define;
-import com.redazz.openeyz.filters.ActionFilter;
-import com.redazz.openeyz.filters.ActionTestFilter;
 import com.redazz.openeyz.filters.RequestFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -27,33 +25,6 @@ public class RegisterBean {
         registrationBean.setFilter(new RequestFilter());
         registrationBean.addUrlPatterns("/api/*");
         registrationBean.setOrder(1);
-
-        return registrationBean;
-    }
-    @Bean
-    public FilterRegistrationBean<ActionFilter> actionFilter() {
-        FilterRegistrationBean<ActionFilter> registrationBean = new FilterRegistrationBean<>();
-
-        
-        
-        // publication delete 
-        // comment delete
-        // notif patch & delete
-        // user patch 
-        
-        registrationBean.setFilter(new ActionFilter());
-        registrationBean.addUrlPatterns("/api/*");
-        registrationBean.setOrder(2);
-
-        return registrationBean;
-    }
-    @Bean
-    public FilterRegistrationBean<ActionTestFilter> actionTestFilter() {
-        FilterRegistrationBean<ActionTestFilter> registrationBean = new FilterRegistrationBean<>();
-
-        registrationBean.setFilter(new ActionTestFilter());
-        registrationBean.addUrlPatterns("/api/*");
-        registrationBean.setOrder(3);
 
         return registrationBean;
     }

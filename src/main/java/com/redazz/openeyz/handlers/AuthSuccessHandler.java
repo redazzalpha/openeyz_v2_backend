@@ -25,7 +25,6 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         String username = request.getParameter("username");
         Cookie cookie = new Cookie(Define.COOKIE_USERID_NAME, username);
 
-//        cookie.setPath(Define.ROOT_URL);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
 
