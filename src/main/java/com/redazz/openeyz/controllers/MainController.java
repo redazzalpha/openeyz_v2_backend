@@ -75,20 +75,21 @@ public class MainController {
     ActionHandler actionHandler;
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> authSuccess(@CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<Map<String, Object>> authSuccess(HttpServletResponse response, @CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID) {
         String username = USERID.getValue();
         Map<String, Object> json = new HashMap<>();
         Optional<Users> user = us.findById(username);
 
         if (user.isPresent()) {
-            String token = jwt.encode(username);
-            jwt.setExpiration(10);
-            String refreshToken = jwt.encode(username);
+            String token = jwt.encode(username, JSESSIONID.getValue());
+            jwt.setExpiration(7);
+            String refreshToken = jwt.encode(username, JSESSIONID.getValue());
 
             json.put("token", token);
             json.put("refreshToken", refreshToken);
             json.put("user", user.get());
         }
+
         return new ResponseEntity<>(json, HttpStatus.OK);
     }
 
@@ -121,7 +122,7 @@ public class MainController {
     }
 
     @PostMapping("refresh")
-    public ResponseEntity<Map<String, Object>> refreshToken(@RequestParam(required = true) String refreshToken, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<Map<String, Object>> refreshToken(@RequestParam(required = true) String refreshToken, @CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID) {
 
         Map<String, Object> json = new HashMap<>();
         try {
@@ -129,7 +130,7 @@ public class MainController {
             String username = USERID.getValue();
             Optional<Users> user = us.findById(username);
             if (user.isPresent()) {
-                String token = jwt.encode(username);
+                String token = jwt.encode(username, JSESSIONID.getValue());
                 json.put("token", token);
                 json.put("refreshToken", refreshToken);
                 json.put("user", user.get());
