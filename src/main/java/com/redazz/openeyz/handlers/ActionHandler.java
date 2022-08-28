@@ -30,7 +30,7 @@ public class ActionHandler {
         try {
             currentUser = us.findById(currentUserId).get();
 
-            if (isAuthorized(currentUserId, publicationComponent)) {
+            if (isAuthorized(currentUser, publicationComponent)) {
                 callback.apply(publicationComponent.getId());
             }
             else {
@@ -62,8 +62,7 @@ public class ActionHandler {
 
         return new ResponseEntity<>("action handler success", HttpStatus.OK);
     }
-    private <T extends PublicationComponent> boolean isAuthorized(String currentUserId, T publicationComponent) {
-        Users currentUser = us.findById(currentUserId).get();
+    private <T extends PublicationComponent> boolean isAuthorized(Users currentUser, T publicationComponent) {
         String currentUserRole = currentUser.getRoles().get(0).getRoleName().toString();
         String publicationComponentAuthor = publicationComponent.getAuthor().getUsername();
 

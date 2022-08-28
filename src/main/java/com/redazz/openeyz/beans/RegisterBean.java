@@ -23,7 +23,7 @@ public class RegisterBean {
         FilterRegistrationBean<RequestFilter> registrationBean = new FilterRegistrationBean<>();
 
         registrationBean.setFilter(new RequestFilter());
-        registrationBean.addUrlPatterns("/api/*");
+        registrationBean.addUrlPatterns("*");
         registrationBean.setOrder(1);
 
         return registrationBean;

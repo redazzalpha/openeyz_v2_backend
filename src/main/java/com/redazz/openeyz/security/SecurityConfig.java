@@ -11,7 +11,6 @@ import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.enums.RoleEnum;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -59,11 +57,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .and()
                 .cors().configurationSource(request -> corsConfiguration(request));
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-//        http.authorizeHttpRequests()
-//                .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
-//                .antMatchers("*", "/api/**").hasAnyRole("SUPERADMIN", "ADMIN", "USER")
-//                .antMatchers("*", "/admin/**").hasRole("SUPERADMIN");
+        http.authorizeHttpRequests()
+                .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
+                .antMatchers("*", "/api/**").authenticated()
+                .antMatchers("*", "/admin/**").hasRole("SUPERADMIN");
     }
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -78,7 +75,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowCredentials(true);
         cors.setAllowedHeaders(List.of("*"));
-        cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL));
+        cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL, "https://openeyz.netlify.app"));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         return cors;
     }
