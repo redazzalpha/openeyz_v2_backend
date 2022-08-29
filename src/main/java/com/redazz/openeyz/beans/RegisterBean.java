@@ -6,6 +6,8 @@ package com.redazz.openeyz.beans;
 
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.filters.RequestFilter;
+import com.redazz.openeyz.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +20,15 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
  */
 @Configuration
 public class RegisterBean {
+    @Autowired
+    UserService us;
+    @Autowired
+    Initiator initiator;
+
     @Bean
     public FilterRegistrationBean<RequestFilter> requestFilter() {
         FilterRegistrationBean<RequestFilter> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new RequestFilter());
+        registrationBean.setFilter(new RequestFilter(us, initiator));
         registrationBean.addUrlPatterns("*");
         registrationBean.setOrder(1);
 

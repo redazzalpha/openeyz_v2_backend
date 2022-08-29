@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.Initiator;
+import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.ActionHandler;
 import com.redazz.openeyz.models.Comment;
@@ -75,8 +76,8 @@ public class MainController {
     Encoder encoder;
     @Autowired
     ActionHandler actionHandler;
-
-    private final Initiator initiator = Initiator.get();
+    @Autowired
+    Initiator initiator;
 
     @PostMapping("auth-failure")
     public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
@@ -84,8 +85,10 @@ public class MainController {
         String username = request.getParameter("username");
         String message;
         HttpStatus status;
-        try {
-            Users currentUser = us.findById(username).get();
+        Optional<Users> user = us.findById(username);
+
+        if (user.isPresent()) {
+            Users currentUser = user.get();
             if (!currentUser.getState()) {
                 message = Define.MESSAGE_ERROR_BANNED;
                 status = HttpStatus.UNAUTHORIZED;
@@ -95,12 +98,13 @@ public class MainController {
                 status = HttpStatus.UNAUTHORIZED;
             }
         }
-        catch (Exception e) {
-            message = Define.MESSAGE_ERROR_USERNAME;
-            status = HttpStatus.NOT_FOUND;
+        else {
+            message = Define.MESSAGE_NOT_FOUND_USER;
+            status = HttpStatus.BAD_REQUEST;
         }
         return new ResponseEntity<>(message, status);
     }
+    //TODO : try to see if other error can happen with yarc on bad password or empty fields
     @PostMapping("register-failure")
     public ResponseEntity<String> registerFailure(HttpServletRequest request, HttpServletResponse response) {
         return new ResponseEntity<>("user already exists", HttpStatus.UNAUTHORIZED);
@@ -109,17 +113,15 @@ public class MainController {
     @PostMapping("refresh")
     public ResponseEntity<Users> refreshToken(@RequestParam(required = true) String refreshToken, HttpServletRequest request, HttpServletResponse response) {
         try {
-            String token = request.getHeader("Authorization").split("Bearer ")[1];
             if (request.getHeader("Authorization") != null) {
-                String username = initiator.getUsername();
-                Optional<Users> user = us.findById(username);
+                String token = request.getHeader("Authorization").split("Bearer ")[1];
                 Jws<Claims> jws;
                 try {
                     jws = jwt.decode(token);
                     String usernameToken = jws.getBody().get("username").toString();
-                    boolean isTokenOwner = usernameToken.equals(username);
-
-                    if (user.isPresent() && isTokenOwner) {
+                    Optional<Users> user = us.findById(usernameToken);
+                    
+                    if (user.isPresent()) {
                         response.addHeader("x-auth-token", token);
                         response.addHeader("x-refresh-token", refreshToken);
                         return new ResponseEntity<>(user.get(), HttpStatus.OK);
@@ -129,9 +131,10 @@ public class MainController {
                     try {
                         jws = jwt.decode(refreshToken);
                         String usernameRfrshToken = jws.getBody().get("username").toString();
-                        boolean isRfrshTokenOwner = usernameRfrshToken.equals(username);
+                        Optional<Users> user = us.findById(usernameRfrshToken);
 
-                        if (user.isPresent() && isRfrshTokenOwner) {
+                        if (user.isPresent()) {
+                            String username = user.get().getUsername();
                             String newToken = jwt.encode(username);
                             response.addHeader("x-auth-token", newToken);
                             response.addHeader("x-refresh-token", refreshToken);
@@ -149,8 +152,7 @@ public class MainController {
         }
         catch (IOException ex) {
         }
-
-        return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
     @Transactional
@@ -230,13 +232,19 @@ public class MainController {
         String message;
         HttpStatus status;
         try {
-            Users user = us.findById(username).get();
-            ps.save(new Post(post, user));
-            message = Define.MESSAGE_POST_SUCCESS;
-            status = HttpStatus.CREATED;
+            Optional<Users> user = us.findById(username);
+            if (user.isPresent()) {
+                ps.save(new Post(post, user.get()));
+                message = Define.MESSAGE_POST_SUCCESS;
+                status = HttpStatus.CREATED;
+            }
+            else {
+                message = Define.MESSAGE_NOT_FOUND_USER;
+                status = HttpStatus.BAD_REQUEST;
+            }
         }
         catch (Exception e) {
-            message = Define.MESSAGE_ERROR_POST;
+            message = e.getMessage();
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
         return new ResponseEntity<>(message, status);
@@ -244,14 +252,19 @@ public class MainController {
     @DeleteMapping("publication")
     public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId) {
         try {
-            Post post = ps.findById(postId).get();
-            return actionHandler.run(initiator.getUsername(), post, (idPost) -> {
-                ps.deleteById(idPost);
-                return null;
-            });
+            Optional<Post> post = ps.findById(postId);
+            if (post.isPresent()) {
+                return actionHandler.run(initiator.getUsername(), post.get(), (idPost) -> {
+                    ps.deleteById(idPost);
+                    return null;
+                });
+            }
+            else {
+                throw new RuntimeException("post value is not present");
+            }
         }
         catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -266,54 +279,78 @@ public class MainController {
     @Transactional
     @PostMapping("comment")
     public ResponseEntity<String> postComment(@RequestParam(required = true) String comment, @RequestParam(required = true) long postId) {
-        Post post = ps.findById(postId).get();
-        Users author = us.findById(initiator.getUsername()).get();
-        Comment com = new Comment(comment, post, author);
+        Optional<Post> optPost = ps.findById(postId);
+        Optional<Users> optAuthor = us.findById(initiator.getUsername());
+        String message = "Comment successfully created";
+        HttpStatus status = HttpStatus.CREATED;
 
-        cs.save(com);
+        if (optPost.isPresent() && optAuthor.isPresent()) {
 
-        Users owner = com.getPost().getAuthor();
-        if (!author.getUsername().equals(owner.getUsername())) {
-            Notif notif = new Notif(false, owner, com, author);
-            ns.save(notif);
+            Post post = optPost.get();
+            Users author = optAuthor.get();
+
+            Comment com = new Comment(comment, post, author);
+            cs.save(com);
+
+            Users owner = com.getPost().getAuthor();
+            if (!author.getUsername().equals(owner.getUsername())) {
+                Notif notif = new Notif(false, owner, com, author);
+                ns.save(notif);
+            }
+        }
+        else {
+            message = "sources are unavailable";
+            status = HttpStatus.BAD_REQUEST;
         }
 
-        return new ResponseEntity<>("Comment successfully created", HttpStatus.CREATED);
+        return new ResponseEntity<>(message, status);
     }
     @DeleteMapping("comment/delete")
     public ResponseEntity<String> deleteComment(@RequestParam(required = true) long commentId) {
         try {
-            Comment comment = cs.findById(commentId).get();
-            return actionHandler.run(initiator.getUsername(), comment, (idComment) -> {
-                cs.deleteById(idComment);
-                return null;
-            });
+            Optional<Comment> comment = cs.findById(commentId);
+            if (comment.isPresent()) {
+                return actionHandler.run(initiator.getUsername(), comment.get(), (idComment) -> {
+                    cs.deleteById(idComment);
+                    return null;
+                });
+            }
+            else {
+                throw new RuntimeException("comment value is not present");
+            }
         }
         catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
     @Transactional
     @PostMapping("like")
     public ResponseEntity<String> postLike(@RequestParam(required = true) long postId) {
-        Users author = us.findById(initiator.getUsername()).get();
-        Post post = ps.findById(postId).get();
+        Optional<Users> author = us.findById(initiator.getUsername());
+        Optional<Post> post = ps.findById(postId);
         String message;
         HttpStatus status;
 
-        if (!ls.getUserlikePost(postId, author.getUsername())) {
+        if (author.isPresent() && post.isPresent()) {
 
-            Likes like = new Likes(post, author);
-            ls.save(like);
-            message = "Like successfully added";
-            status = HttpStatus.CREATED;
+            if (!ls.getUserlikePost(postId, author.get().getUsername())) {
+
+                Likes like = new Likes(post.get(), author.get());
+                ls.save(like);
+                message = "Like successfully added";
+                status = HttpStatus.CREATED;
+            }
+            else {
+                Likes like = ls.findByAuthorAndPost(author.get(), post.get()).get();
+                ls.delete(like);
+                message = "Like successfully removed";
+                status = HttpStatus.OK;
+            }
         }
         else {
-            Likes like = ls.findByAuthorAndPost(author, post).get();
-            ls.delete(like);
-            message = "Like successfully removed";
-            status = HttpStatus.OK;
+            message = "resource values are not present";
+            status = HttpStatus.BAD_REQUEST;
         }
 
         return new ResponseEntity<>(message, status);
@@ -377,27 +414,37 @@ public class MainController {
     public ResponseEntity<String> readNotifOne(@RequestParam(required = true) long notifId) {
 
         try {
-            Notif notif = ns.findById(notifId).get();
-            return actionHandler.run(initiator.getUsername(), notif, (idNotif) -> {
-                ns.readOneFromUser(idNotif);
-                return null;
-            });
+            Optional<Notif> notif = ns.findById(notifId);
+            if (notif.isPresent()) {
+                return actionHandler.run(initiator.getUsername(), notif.get(), (idNotif) -> {
+                    ns.readOneFromUser(idNotif);
+                    return null;
+                });
+            }
+            else {
+                throw new RuntimeException("notif value is not present");
+            }
         }
         catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
     @DeleteMapping("notif/one")
     public ResponseEntity<String> deleteNotifOne(@RequestParam(required = true) long notifId) {
         try {
-            Notif notif = ns.findById(notifId).get();
-            return actionHandler.run(initiator.getUsername(), notif, (idNotif) -> {
-                ns.deleteById(idNotif);
-                return null;
-            });
+            Optional<Notif> notif = ns.findById(notifId);
+            if (notif.isPresent()) {
+                return actionHandler.run(initiator.getUsername(), notif.get(), (idNotif) -> {
+                    ns.deleteById(idNotif);
+                    return null;
+                });
+            }
+            else {
+                throw new RuntimeException("notif value is not present");
+            }
         }
         catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -432,24 +479,27 @@ public class MainController {
     }
     @PatchMapping("user/password")
     public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword) {
-
         String hash, message = "Invalid. Password does not match with the current";
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
-        Users user = us.findById(initiator.getUsername()).get();
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        Optional<Users> user = us.findById(initiator.getUsername());
 
-        if (user == null) {
-            message = "User was not found!";
-            status = HttpStatus.NOT_FOUND;
-            return new ResponseEntity<>(message, status);
+        try {
+            if (user.isPresent()) {
+                boolean match = encoder.matches(currentPassword, user.get().getPassword());
+                if (match) {
+                    hash = encoder.encode(newPassword);
+                    us.updatePassword(hash, initiator.getUsername());
+                    message = "Password was successfully modified";
+                    status = HttpStatus.OK;
+                }
+            }
+            else {
+                message = "User was not found!";
+                status = HttpStatus.NOT_FOUND;
+            }
         }
-
-        boolean match = encoder.matches(currentPassword, user.getPassword());
-
-        if (match) {
-            hash = encoder.encode(newPassword);
-            us.updatePassword(hash, initiator.getUsername());
-            message = "Password was successfully modified";
-            status = HttpStatus.OK;
+        catch (Exception ex) {
+            message = ex.getMessage();
         }
 
         return new ResponseEntity<>(message, status);

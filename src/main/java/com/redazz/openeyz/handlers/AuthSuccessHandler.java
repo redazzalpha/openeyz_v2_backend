@@ -6,7 +6,6 @@ package com.redazz.openeyz.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redazz.openeyz.beans.JwTokenUtils;
-import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
 import java.io.IOException;
@@ -29,7 +28,6 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     UserService us;
     @Autowired
     JwTokenUtils jwt;
-    private final Initiator initiator = Initiator.get();
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -44,18 +42,6 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
 
             ObjectMapper mapper = new ObjectMapper();
             String userJson = mapper.writeValueAsString(user.get());
-
-            Users currentUser = user.get();
-
-            initiator.setUsername(currentUser.getUsername());
-            initiator.setLname(currentUser.getLname());
-            initiator.setName(currentUser.getName());
-            initiator.setPassword(currentUser.getPassword());
-            initiator.setState(currentUser.getState());
-            initiator.setDescription(currentUser.getDescription());
-            initiator.setAvatarSrc(currentUser.getAvatarSrc());
-            initiator.setDark(currentUser.getDark());
-            initiator.setRoles(currentUser.getRoles());
 
             response.addHeader("x-auth-token", token);
             response.addHeader("x-refresh-token", refreshToken);

@@ -19,9 +19,9 @@ public class Define {
     public static final String ASSETS_DIRECTORY = "assets";
     public static final String ASSETS_USER_DIRECTORY = "assets/users";
     
-    public static final String ALLOWED_ORIGIN_URL = "http://localhost:8080";
+    public static final String ALLOWED_ORIGIN_LOCAL_URL = "http://localhost:8080";
     public static final String ALLOWED_ORIGIN1_URL = "http://192.168.0.20:8080";
-    public static final String ALLOWED_ORIGIN2_URL = "https://openeyz.netlify.app";
+    public static final String ALLOWED_ORIGIN_URL = "https://openeyz.netlify.app";
     
     public static final String DOWNLOAD_IMAGE_URL = "http://localhost:8081/api/image?img=";
     public static final String LOGIN_PAGE_URL = "http://localhost:8080/#/access";
@@ -31,16 +31,15 @@ public class Define {
     public static final String AUTH_AUTHORITIES_QUERY = "select username, role from user_roles where username = ?";
     public static final String AUTH_ROLE_PREFIX = "ROLE_";
 
-    public static final String COOKIE_SESSIONID_NAME = "JSESSIONID";
-    public static final String COOKIE_USERID_NAME = "USERID";
 
     public static final String MESSAGE_AUTH_SUCCESS = "Auth success";
     public static final String MESSAGE_POST_SUCCESS = "Publication successfully posted";
     
     public static final String MESSAGE_ERROR_BANNED = "your account has been disabled";
-    public static final String MESSAGE_ERROR_USERNAME = "bad credentials user was not found";
     public static final String MESSAGE_ERROR_PASSWORD = "bad credentials check password";
     public static final String MESSAGE_ERROR_POST = "An error has occurred when try to post publication";
+    public static final String MESSAGE_NOT_FOUND_USER = "user was not found";
+    public static final String MESSAGE_NOT_FOUND_POST = "post was not found";
 
     public static final int MULTIPART_UPLOAD_SIZE = 1000000;
 }

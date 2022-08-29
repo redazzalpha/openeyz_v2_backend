@@ -5,6 +5,7 @@
 package com.redazz.openeyz.beans;
 
 import com.redazz.openeyz.models.Role;
+import com.redazz.openeyz.models.Users;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -14,34 +15,43 @@ import org.springframework.stereotype.Component;
  *
  * @author kyzer
  */
-@Data
 @Component
+@Data
 public class Initiator {
     private String username;
     private String lname;
     private String name;
     private String password;
-    private boolean state = true;
     private String description;
     private String avatarSrc;
     private boolean dark;
+    private boolean state = true;
     private List<Role> roles = new ArrayList<>();
-    private static Initiator user = null;
+    private Users user = new Users();
 
-    private Initiator() {
+    public void init(Users user) {
+        this.user = user;
+        this.username = user.getUsername();
+        this.lname = user.getLname();
+        this.name  = user.getName();
+        this.password = user.getPassword();
+        this.description = user.getDescription();
+        this.avatarSrc = user.getAvatarSrc();
+        this.dark = user.getDark();
+        this.state = user.getState();
+        this.roles = user.getRoles();
     }
-
-    public static Initiator get() {
-        if (user == null) {
-            user = new Initiator();
-        }
+    public Users getUser() {
         return user;
-    }
-
-    public boolean getState() {
-        return state;
     }
     public boolean getDark() {
         return dark;
     }
+    public boolean getState() {
+        return state;
+    }
+    public String getRole() {
+        return roles.get(0).getRoleName().toString();
+    }
+
 }
