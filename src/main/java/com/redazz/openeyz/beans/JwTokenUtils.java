@@ -51,7 +51,10 @@ public class JwTokenUtils {
         String jwtToken = Jwts.builder()
                 .claim("username", username)
                 .claim("role", user.getRoles().get(0).getRoleName())
+<<<<<<< HEAD
                 .claim("JSESSIONID", cookie)
+=======
+>>>>>>> slave
                 .setSubject(username)
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(Date.from(now))
