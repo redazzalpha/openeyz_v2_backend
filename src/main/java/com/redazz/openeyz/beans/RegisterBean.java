@@ -21,7 +21,6 @@ public class RegisterBean {
     @Bean
     public FilterRegistrationBean<RequestFilter> requestFilter() {
         FilterRegistrationBean<RequestFilter> registrationBean = new FilterRegistrationBean<>();
-
         registrationBean.setFilter(new RequestFilter());
         registrationBean.addUrlPatterns("*");
         registrationBean.setOrder(1);

@@ -51,16 +51,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.formLogin()
-                .loginPage(Define.LOGIN_PAGE_URL)
+                .loginPage(Define.LOGIN_PAGE1_URL)
                 .and()
                 .addFilter(new AuthHandler())
                 .logout()
                 .and()
                 .cors().configurationSource(request -> corsConfiguration(request));
-        http.authorizeHttpRequests()
-                .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
-                .antMatchers("*", "/api/**").authenticated()
-                .antMatchers("*", "/admin/**").hasRole("SUPERADMIN");
+            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -75,7 +72,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowCredentials(true);
         cors.setAllowedHeaders(List.of("*"));
-        cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL));
+        cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL, Define.ALLOWED_ORIGIN1_URL, Define.ALLOWED_ORIGIN2_URL));
+        cors.setExposedHeaders(List.of("x-auth-token", "x-refresh-token"));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         return cors;
     }

@@ -67,12 +67,16 @@ public class Users implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "username", referencedColumnName = "username"),
-        inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "roleName")
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "username", referencedColumnName = "username"),
+            inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "roleName")
     )
     private List<Role> roles = new ArrayList<>();
     
+    public boolean getDark() {
+        return dark;
+    }
+
     public boolean getState() {
         return state;
     }

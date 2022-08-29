@@ -4,8 +4,10 @@
  */
 package com.redazz.openeyz.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
+import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.ActionHandler;
 import com.redazz.openeyz.models.Comment;
@@ -18,28 +20,28 @@ import com.redazz.openeyz.services.LikesService;
 import com.redazz.openeyz.services.NotifService;
 import com.redazz.openeyz.services.PostService;
 import com.redazz.openeyz.services.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.persistence.Tuple;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -74,24 +76,7 @@ public class MainController {
     @Autowired
     ActionHandler actionHandler;
 
-    @GetMapping
-    public ResponseEntity<Map<String, Object>> authSuccess(HttpServletResponse response, @CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID) {
-        String username = USERID.getValue();
-        Map<String, Object> json = new HashMap<>();
-        Optional<Users> user = us.findById(username);
-
-        if (user.isPresent()) {
-            String token = jwt.encode(username, JSESSIONID.getValue());
-            jwt.setExpiration(7);
-            String refreshToken = jwt.encode(username, JSESSIONID.getValue());
-
-            json.put("token", token);
-            json.put("refreshToken", refreshToken);
-            json.put("user", user.get());
-        }
-
-        return new ResponseEntity<>(json, HttpStatus.OK);
-    }
+    private final Initiator initiator = Initiator.get();
 
     @PostMapping("auth-failure")
     public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
@@ -122,29 +107,51 @@ public class MainController {
     }
 
     @PostMapping("refresh")
-    public ResponseEntity<Map<String, Object>> refreshToken(@RequestParam(required = true) String refreshToken, @CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID) {
-
-        Map<String, Object> json = new HashMap<>();
+    public ResponseEntity<Users> refreshToken(@RequestParam(required = true) String refreshToken, HttpServletRequest request, HttpServletResponse response) {
         try {
-            jwt.decode(refreshToken);
-            String username = USERID.getValue();
-            Optional<Users> user = us.findById(username);
-            if (user.isPresent()) {
-                String token = jwt.encode(username, JSESSIONID.getValue());
-                json.put("token", token);
-                json.put("refreshToken", refreshToken);
-                json.put("user", user.get());
-                return new ResponseEntity<>(json, HttpStatus.OK);
+            String token = request.getHeader("Authorization").split("Bearer ")[1];
+            if (request.getHeader("Authorization") != null && token != null) {
+                try {
+                    jwt.decode(token);
+                    String username = initiator.getUsername();
+                    Optional<Users> user = us.findById(username);
+                    if (user.isPresent()) {
+                        response.addHeader("x-auth-token", token);
+                        response.addHeader("x-refresh-token", refreshToken);
+                        return new ResponseEntity<>(user.get(), HttpStatus.OK);
+                    }
+                }
+                catch (ExpiredJwtException e) {
+                    try {
+                        jwt.decode(refreshToken);
+                        String username = initiator.getUsername();
+                        Optional<Users> user = us.findById(username);
+                        if (user.isPresent()) {
+                            String newToken = jwt.encode(username);
+                            response.addHeader("x-auth-token", newToken);
+                            response.addHeader("x-refresh-token", refreshToken);
+                            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+                        }
+                    }
+                    catch (Exception ex) {
+                        response.sendError(401, ex.getMessage());
+                    }
+                }
+            }
+            else {
+                response.sendError(401, "bearer token was not found");
             }
         }
-        catch (Exception ex) {
+        catch (IOException ex) {
         }
-        return new ResponseEntity<>(json, HttpStatus.UNAUTHORIZED);
+
+        return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
     }
 
     @Transactional
     @GetMapping("publication")
-    public ResponseEntity<List<Object>> getAllPost(@RequestParam(required = false) String authorId, @CookieValue(required = true) Cookie USERID) {
+    // TODO: modify return type object to json according unified convention 
+    public ResponseEntity<List<Object>> getAllPost(@RequestParam(required = false) String authorId) {
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
@@ -161,7 +168,7 @@ public class MainController {
             for (Tuple t : tuples) {
                 Map<String, Object> json = new HashMap<>();
                 post = (Post) (t.get(0));
-                userLike = ls.getUserlikePost(post.getId(), USERID.getValue());
+                userLike = ls.getUserlikePost(post.getId(), initiator.getUsername());
 
                 json.put("post", post);
                 json.put("commentCount", t.get(1));
@@ -178,7 +185,7 @@ public class MainController {
         return new ResponseEntity<>(list, status);
     }
     @GetMapping("publication/limit")
-    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = false) String authorId, @RequestParam(required = true) int limit, @RequestParam(required = false) String creation, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = false) String authorId, @RequestParam(required = true) int limit, @RequestParam(required = false) String creation) {
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
@@ -196,7 +203,7 @@ public class MainController {
             for (Tuple t : tuples) {
                 Map<String, Object> json = new HashMap<>();
                 post = (Post) (t.get(0));
-                userLike = ls.getUserlikePost(post.getId(), USERID.getValue());
+                userLike = ls.getUserlikePost(post.getId(), initiator.getUsername());
 
                 json.put("post", post);
                 json.put("commentCount", t.get(1));
@@ -213,8 +220,8 @@ public class MainController {
     }
     @Transactional
     @PostMapping("publication")
-    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post, @CookieValue(required = true) Cookie USERID) {
-        String username = USERID.getValue();
+    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post) {
+        String username = initiator.getUsername();
         String message;
         HttpStatus status;
         try {
@@ -230,10 +237,10 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
     @DeleteMapping("publication")
-    public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> deletePublication(@RequestParam(required = true) long postId) {
         try {
             Post post = ps.findById(postId).get();
-            return actionHandler.run(USERID.getValue(), post, (idPost) -> {
+            return actionHandler.run(initiator.getUsername(), post, (idPost) -> {
                 ps.deleteById(idPost);
                 return null;
             });
@@ -253,9 +260,9 @@ public class MainController {
     }
     @Transactional
     @PostMapping("comment")
-    public ResponseEntity<String> postComment(@RequestParam(required = true) String comment, @RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> postComment(@RequestParam(required = true) String comment, @RequestParam(required = true) long postId) {
         Post post = ps.findById(postId).get();
-        Users author = us.findById(USERID.getValue()).get();
+        Users author = us.findById(initiator.getUsername()).get();
         Comment com = new Comment(comment, post, author);
 
         cs.save(com);
@@ -269,10 +276,10 @@ public class MainController {
         return new ResponseEntity<>("Comment successfully created", HttpStatus.CREATED);
     }
     @DeleteMapping("comment/delete")
-    public ResponseEntity<String> deleteComment(@RequestParam(required = true) long commentId, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> deleteComment(@RequestParam(required = true) long commentId) {
         try {
             Comment comment = cs.findById(commentId).get();
-            return actionHandler.run(USERID.getValue(), comment, (idComment) -> {
+            return actionHandler.run(initiator.getUsername(), comment, (idComment) -> {
                 cs.deleteById(idComment);
                 return null;
             });
@@ -284,8 +291,8 @@ public class MainController {
 
     @Transactional
     @PostMapping("like")
-    public ResponseEntity<String> postLike(@RequestParam(required = true) long postId, @CookieValue(required = true) Cookie USERID) {
-        Users author = us.findById(USERID.getValue()).get();
+    public ResponseEntity<String> postLike(@RequestParam(required = true) long postId) {
+        Users author = us.findById(initiator.getUsername()).get();
         Post post = ps.findById(postId).get();
         String message;
         HttpStatus status;
@@ -328,7 +335,7 @@ public class MainController {
         return new ResponseEntity<>(image, status);
     }
     @PostMapping("image")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) {
         Map<String, String> json = new HashMap<>();
         HttpStatus status;
         try {
@@ -347,26 +354,26 @@ public class MainController {
     }
 
     @GetMapping("notif")
-    public ResponseEntity<List<Notif>> getAllNotifs(@CookieValue(required = true) Cookie USERID) {
-        return new ResponseEntity<>(ns.getNotifsFromOwner(USERID.getValue()), HttpStatus.OK);
+    public ResponseEntity<List<Notif>> getAllNotifs() {
+        return new ResponseEntity<>(ns.getNotifsFromOwner(initiator.getUsername()), HttpStatus.OK);
     }
     @PatchMapping("notif")
-    public ResponseEntity<String> readAllNotifs(@CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> readAllNotifs() {
 
-        ns.readAllFromUser(USERID.getValue());
+        ns.readAllFromUser(initiator.getUsername());
         return new ResponseEntity<>("all notifications read successfully", HttpStatus.OK);
     }
     @DeleteMapping("notif")
-    public ResponseEntity<String> deleteAllNotif(@CookieValue(required = true) Cookie USERID) {
-        ns.deleteAllFromUser(USERID.getValue());
+    public ResponseEntity<String> deleteAllNotif() {
+        ns.deleteAllFromUser(initiator.getUsername());
         return new ResponseEntity<>("all notifications has been deleted successfully", HttpStatus.OK);
     }
     @PatchMapping("notif/one")
-    public ResponseEntity<String> readNotifOne(@RequestParam(required = true) long notifId, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> readNotifOne(@RequestParam(required = true) long notifId) {
 
         try {
             Notif notif = ns.findById(notifId).get();
-            return actionHandler.run(USERID.getValue(), notif, (idNotif) -> {
+            return actionHandler.run(initiator.getUsername(), notif, (idNotif) -> {
                 ns.readOneFromUser(idNotif);
                 return null;
             });
@@ -376,10 +383,10 @@ public class MainController {
         }
     }
     @DeleteMapping("notif/one")
-    public ResponseEntity<String> deleteNotifOne(@RequestParam(required = true) long notifId, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> deleteNotifOne(@RequestParam(required = true) long notifId) {
         try {
             Notif notif = ns.findById(notifId).get();
-            return actionHandler.run(USERID.getValue(), notif, (idNotif) -> {
+            return actionHandler.run(initiator.getUsername(), notif, (idNotif) -> {
                 ns.deleteById(idNotif);
                 return null;
             });
@@ -390,8 +397,8 @@ public class MainController {
     }
 
     @GetMapping("user")
-    public ResponseEntity<Users> getUser(@CookieValue(required = true) Cookie USERID) {
-        return new ResponseEntity<>(us.findById(USERID.getValue()).get(), HttpStatus.OK);
+    public ResponseEntity<Users> getUser() {
+        return new ResponseEntity<>(us.findById(initiator.getUsername()).get(), HttpStatus.OK);
     }
     @GetMapping("user/simple")
     public ResponseEntity<List<Object>> getAllUsuersSimple() {
@@ -399,31 +406,31 @@ public class MainController {
     }
     @Transactional
     @PatchMapping("user/dark")
-    public ResponseEntity<String> modifyDark(@RequestParam(required = true) boolean dark, @CookieValue(required = true) Cookie USERID) {
-        us.updateDark(dark, USERID.getValue());
+    public ResponseEntity<String> modifyDark(@RequestParam(required = true) boolean dark) {
+        us.updateDark(dark, initiator.getUsername());
         return new ResponseEntity<>("Dark theme has been successfully set", HttpStatus.OK);
     }
     @PatchMapping("user/lname")
-    public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname, @CookieValue(required = true) Cookie USERID) {
-        us.updateLname(lname, USERID.getValue());
+    public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname) {
+        us.updateLname(lname, initiator.getUsername());
         return new ResponseEntity<>("Last name successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/name")
-    public ResponseEntity<String> modifyName(@RequestParam(required = true, name = "data") String name, @CookieValue(required = true) Cookie USERID) {
-        us.updateName(name, USERID.getValue());
+    public ResponseEntity<String> modifyName(@RequestParam(required = true, name = "data") String name) {
+        us.updateName(name, initiator.getUsername());
         return new ResponseEntity<>("Name successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/description")
-    public ResponseEntity<String> modifyDescription(@RequestParam(required = true) String description, @CookieValue(required = true) Cookie USERID) {
-        us.updateDescription(description, USERID.getValue());
+    public ResponseEntity<String> modifyDescription(@RequestParam(required = true) String description) {
+        us.updateDescription(description, initiator.getUsername());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/password")
-    public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword) {
 
         String hash, message = "Invalid. Password does not match with the current";
         HttpStatus status = HttpStatus.UNAUTHORIZED;
-        Users user = us.findById(USERID.getValue()).get();
+        Users user = us.findById(initiator.getUsername()).get();
 
         if (user == null) {
             message = "User was not found!";
@@ -435,7 +442,7 @@ public class MainController {
 
         if (match) {
             hash = encoder.encode(newPassword);
-            us.updatePassword(hash, USERID.getValue());
+            us.updatePassword(hash, initiator.getUsername());
             message = "Password was successfully modified";
             status = HttpStatus.OK;
         }
@@ -443,7 +450,7 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
     @PostMapping("user/img")
-    public ResponseEntity<String> modifyUserImg(@RequestParam(required = true) MultipartFile file, @CookieValue(required = true) Cookie USERID) {
+    public ResponseEntity<String> modifyUserImg(@RequestParam(required = true) MultipartFile file) {
         HttpStatus status;
         String message;
         try {
@@ -452,7 +459,7 @@ public class MainController {
 //            File dest = new File(Define.ASSETS_USER_DIRECTORY + "/" + filename);
 
             file.transferTo(dest);
-            us.updateImg(Define.DOWNLOAD_IMAGE_URL + filename, USERID.getValue());
+            us.updateImg(Define.DOWNLOAD_IMAGE_URL + filename, initiator.getUsername());
 
             message = Define.DOWNLOAD_IMAGE_URL + filename;
             status = HttpStatus.CREATED;
@@ -464,7 +471,7 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
     @GetMapping("user/data")
-    public ResponseEntity<Users> getUserData(@CookieValue(required = true) Cookie USERID, @RequestParam(required = true) String username) {
+    public ResponseEntity<Users> getUserData(@RequestParam(required = true) String username) {
 
         Users user = us.findById(username).get();
         return new ResponseEntity<>(user, HttpStatus.OK);
@@ -472,39 +479,27 @@ public class MainController {
 
     // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
     @PatchMapping("user/username")
-    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, @CookieValue(required = true) Cookie USERID, HttpServletResponse response) {
-        us.updateUsername(username, USERID.getValue());
-        USERID.setValue(username);
+    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response) {
+        us.updateUsername(username, initiator.getUsername());
         return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }
     @DeleteMapping("user/delete")
-    public ResponseEntity<Map<String, Object>> deleteAccount(@CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID, HttpServletResponse response) {
-        ResponseCookie jsessionCookie = ResponseCookie.from(JSESSIONID.getName(), JSESSIONID.getValue())
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(Duration.ZERO)
-                .domain("localhost")
-                .build();
-        ResponseCookie userIdCookie = ResponseCookie.from(USERID.getName(), USERID.getValue())
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(Duration.ZERO)
-                .domain("localhost")
-                .build();
-
-        Map<String, Object> json = new HashMap<>();
-        HttpHeaders headers = new HttpHeaders();
-
+    public void deleteAccount(HttpServletResponse response) throws IOException {
+        jwt.setExpiration(0);
         String token = jwt.encode();
-        json.put("token", token);
+        jwt.setExpiration(0);
+        String refreshToken = jwt.encode();
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString("");
 
-        headers.add(HttpHeaders.SET_COOKIE, jsessionCookie.toString());
-        headers.add(HttpHeaders.SET_COOKIE, userIdCookie.toString());
+        us.deleteById(initiator.getUsername());
 
-        us.deleteById(USERID.getValue());
-
-        return new ResponseEntity<>(json, headers, HttpStatus.OK);
+        response.addHeader("x-auth-token", token);
+        response.addHeader("x-refresh-token", refreshToken);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(200);
+        response.getWriter().write(json);
+        response.flushBuffer();
     }
 }
