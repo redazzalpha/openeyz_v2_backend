@@ -57,14 +57,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .and()
                 .cors().configurationSource(request -> corsConfiguration(request));
-<<<<<<< HEAD
-        http.authorizeHttpRequests()
-                .antMatchers(Define.AUTH_FAILURE_URL).permitAll()
-                .antMatchers("*", "/api/**").authenticated()
-                .antMatchers("*", "/admin/**").hasRole("SUPERADMIN");
-=======
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
->>>>>>> slave
     }
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -79,12 +72,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowCredentials(true);
         cors.setAllowedHeaders(List.of("*"));
-<<<<<<< HEAD
-        cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL, "https://openeyz.netlify.app"));
-=======
         cors.setAllowedOrigins(List.of(Define.ALLOWED_ORIGIN_URL, Define.ALLOWED_ORIGIN1_URL, Define.ALLOWED_ORIGIN2_URL));
         cors.setExposedHeaders(List.of("x-auth-token", "x-refresh-token"));
->>>>>>> slave
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         return cors;
     }

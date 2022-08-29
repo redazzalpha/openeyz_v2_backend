@@ -45,20 +45,16 @@ public class JwTokenUtils {
         this.expiration = expiration;
     }
 
-    public String encode(String username, String cookie) {
+    public String encode(String username) {
         Instant now = Instant.now();
         Users user = us.findById(username).get();
         String jwtToken = Jwts.builder()
                 .claim("username", username)
                 .claim("role", user.getRoles().get(0).getRoleName())
-<<<<<<< HEAD
-                .claim("JSESSIONID", cookie)
-=======
->>>>>>> slave
                 .setSubject(username)
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(expiration, ChronoUnit.DAYS)))
+                .setExpiration(Date.from(now.plus(expiration, ChronoUnit.SECONDS)))
                 .signWith(SignatureAlgorithm.HS256, hmacKey)
                 .compact();
         expiration = 1;

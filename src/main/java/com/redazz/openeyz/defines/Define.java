@@ -20,14 +20,10 @@ public class Define {
     public static final String ASSETS_USER_DIRECTORY = "assets/users";
     
     public static final String ALLOWED_ORIGIN_URL = "http://localhost:8080";
-<<<<<<< HEAD
-//    public static final String ALLOWED_ORIGIN_URL = "https://openeyz.netlify.app";
-=======
     public static final String ALLOWED_ORIGIN1_URL = "http://192.168.0.20:8080";
     public static final String ALLOWED_ORIGIN2_URL = "https://openeyz.netlify.app";
     
     public static final String DOWNLOAD_IMAGE_URL = "http://localhost:8081/api/image?img=";
->>>>>>> slave
     public static final String LOGIN_PAGE_URL = "http://localhost:8080/#/access";
     public static final String LOGIN_PAGE1_URL = "http://192.168.0.20:8080/#/access";
     

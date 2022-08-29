@@ -76,28 +76,7 @@ public class MainController {
     @Autowired
     ActionHandler actionHandler;
 
-<<<<<<< HEAD
-    @GetMapping
-    public ResponseEntity<Map<String, Object>> authSuccess(HttpServletResponse response, @CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID) {
-        String username = USERID.getValue();
-        Map<String, Object> json = new HashMap<>();
-        Optional<Users> user = us.findById(username);
-
-        if (user.isPresent()) {
-            String token = jwt.encode(username, JSESSIONID.getValue());
-            jwt.setExpiration(7);
-            String refreshToken = jwt.encode(username, JSESSIONID.getValue());
-
-            json.put("token", token);
-            json.put("refreshToken", refreshToken);
-            json.put("user", user.get());
-        }
-
-        return new ResponseEntity<>(json, HttpStatus.OK);
-    }
-=======
     private final Initiator initiator = Initiator.get();
->>>>>>> slave
 
     @PostMapping("auth-failure")
     public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
@@ -128,30 +107,19 @@ public class MainController {
     }
 
     @PostMapping("refresh")
-<<<<<<< HEAD
-    public ResponseEntity<Map<String, Object>> refreshToken(@RequestParam(required = true) String refreshToken, @CookieValue(required = true) Cookie USERID, @CookieValue(required = true) Cookie JSESSIONID) {
-
-        Map<String, Object> json = new HashMap<>();
-        try {
-            jwt.decode(refreshToken);
-            String username = USERID.getValue();
-            Optional<Users> user = us.findById(username);
-            if (user.isPresent()) {
-                String token = jwt.encode(username, JSESSIONID.getValue());
-                json.put("token", token);
-                json.put("refreshToken", refreshToken);
-                json.put("user", user.get());
-                return new ResponseEntity<>(json, HttpStatus.OK);
-=======
     public ResponseEntity<Users> refreshToken(@RequestParam(required = true) String refreshToken, HttpServletRequest request, HttpServletResponse response) {
         try {
             String token = request.getHeader("Authorization").split("Bearer ")[1];
-            if (request.getHeader("Authorization") != null && token != null) {
+            if (request.getHeader("Authorization") != null) {
+                String username = initiator.getUsername();
+                Optional<Users> user = us.findById(username);
+                Jws<Claims> jws;
                 try {
-                    jwt.decode(token);
-                    String username = initiator.getUsername();
-                    Optional<Users> user = us.findById(username);
-                    if (user.isPresent()) {
+                    jws = jwt.decode(token);
+                    String usernameToken = jws.getBody().get("username").toString();
+                    boolean isTokenOwner = usernameToken.equals(username);
+
+                    if (user.isPresent() && isTokenOwner) {
                         response.addHeader("x-auth-token", token);
                         response.addHeader("x-refresh-token", refreshToken);
                         return new ResponseEntity<>(user.get(), HttpStatus.OK);
@@ -159,10 +127,11 @@ public class MainController {
                 }
                 catch (ExpiredJwtException e) {
                     try {
-                        jwt.decode(refreshToken);
-                        String username = initiator.getUsername();
-                        Optional<Users> user = us.findById(username);
-                        if (user.isPresent()) {
+                        jws = jwt.decode(refreshToken);
+                        String usernameRfrshToken = jws.getBody().get("username").toString();
+                        boolean isRfrshTokenOwner = usernameRfrshToken.equals(username);
+
+                        if (user.isPresent() && isRfrshTokenOwner) {
                             String newToken = jwt.encode(username);
                             response.addHeader("x-auth-token", newToken);
                             response.addHeader("x-refresh-token", refreshToken);
@@ -176,7 +145,6 @@ public class MainController {
             }
             else {
                 response.sendError(401, "bearer token was not found");
->>>>>>> slave
             }
         }
         catch (IOException ex) {

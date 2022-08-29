@@ -14,12 +14,7 @@ import java.util.Optional;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-<<<<<<< HEAD
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-=======
 import org.springframework.beans.factory.annotation.Autowired;
->>>>>>> slave
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -39,17 +34,6 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         String username = request.getParameter("username");
-<<<<<<< HEAD
-
-        ResponseCookie cookie = ResponseCookie.from(Define.COOKIE_USERID_NAME, username)
-                .path("/")
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("strict")
-                .build();
-        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        response.sendRedirect(Define.ROOT_URL);
-=======
         Optional<Users> user = us.findById(username);
 
         if (user.isPresent()) {
@@ -81,6 +65,5 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
             response.getWriter().write(userJson);
             response.flushBuffer(); // flush buffer commit end send to client the response
         }
->>>>>>> slave
     }
 }
