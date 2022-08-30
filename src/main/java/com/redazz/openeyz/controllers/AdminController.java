@@ -4,6 +4,7 @@
  */
 package com.redazz.openeyz.controllers;
 
+import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +24,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
     @Autowired
     UserService us;
-    
+    @Autowired
+    Initiator Initiator;
+
     @PatchMapping("state")
     public ResponseEntity<Users> updateState(@RequestParam(required = true) boolean state, @RequestParam(required = true) String username) {
-        us.updateState(state, username);
+        if (!username.equals(Initiator.getUsername())) {
+            us.updateState(state, username);
+        }
         return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
     }
     @PatchMapping("role")
     public ResponseEntity<Users> updateRole(@RequestParam(required = true) String roleName, @RequestParam(required = true) String username) {
-        us.updateRole(roleName, username);
+        if (!username.equals(Initiator.getUsername())) {
+            us.updateRole(roleName, username);
+        }
         return new ResponseEntity<>(us.findById(username).get(), HttpStatus.OK);
     }
 

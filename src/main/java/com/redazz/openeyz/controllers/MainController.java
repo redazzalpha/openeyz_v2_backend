@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.Initiator;
-import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.ActionHandler;
 import com.redazz.openeyz.models.Comment;
@@ -33,8 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.persistence.Tuple;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -157,7 +154,6 @@ public class MainController {
 
     @Transactional
     @GetMapping("publication")
-    // TODO: modify return type object to json according unified convention 
     public ResponseEntity<List<Object>> getAllPost(@RequestParam(required = false) String authorId) {
         List<Object> list = new ArrayList<>();
         Post post;
@@ -385,7 +381,7 @@ public class MainController {
             File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
 
             file.transferTo(dest);
-            //must return json object type with url according CKEditor config
+            //must return json object type with url field according CKEditor config
             json.put("url", Define.DOWNLOAD_IMAGE_URL + filename);
             status = HttpStatus.CREATED;
         }
@@ -511,7 +507,6 @@ public class MainController {
         try {
             String filename = file.getOriginalFilename();
             File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
-//            File dest = new File(Define.ASSETS_USER_DIRECTORY + "/" + filename);
 
             file.transferTo(dest);
             us.updateImg(Define.DOWNLOAD_IMAGE_URL + filename, initiator.getUsername());
@@ -532,7 +527,6 @@ public class MainController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
     @PatchMapping("user/username")
     public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response) {
         us.updateUsername(username, initiator.getUsername());

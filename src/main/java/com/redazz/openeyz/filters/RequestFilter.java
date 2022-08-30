@@ -41,7 +41,7 @@ public class RequestFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-
+        
         boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.UPLOAD_IMAGE_URL) && req.getMethod().equals("GET");
         boolean isAccessRefresh = req.getRequestURI().equals(Define.REFRESH_URL);
         boolean isCheckToken = !(isAccessDownloadImg || isAccessRefresh);
