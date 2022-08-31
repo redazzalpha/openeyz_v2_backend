@@ -15,21 +15,24 @@ public class Define {
     public static final String REFRESH_URL = ROOT_URL + "/refresh";
     public static final String AUTH_FAILURE_URL = ROOT_URL + "/auth-failure";
     public static final String REGISTER_FAILURE_URL = ROOT_URL + "/register-failure";
-    public static final String UPLOAD_IMAGE_URL = ROOT_URL + "/image";
+    public static final String LOCAL_IMAGE_URL = ROOT_URL + "/img";
+    
     public static final String ASSETS_DIRECTORY = "assets";
     public static final String ASSETS_USER_DIRECTORY = "assets/users";
 
-    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";
-//    public static final String SERVER_DOMAIN = "http://localhost:8081";
+    
+//    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";
+    public static final String SERVER_DOMAIN = "http://localhost:8081";
 
-    public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
-//    public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
+//    public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
+    public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
 
-    public static final String DOWNLOAD_IMAGE_URL = SERVER_DOMAIN + "/api/image?img=";
+    public static final String DOWNLOAD_IMAGE_URL = SERVER_DOMAIN + "/api/img?img=";
 
     public static final String ALLOWED_ORIGIN_URL = CLIENT_DOMAIN;
     public static final String LOGIN_PAGE_URL = CLIENT_DOMAIN +  "/access";
 
+    
     public static final String AUTH_USER_QUERY = "select username, password, state from users where username = ?";
     public static final String AUTH_AUTHORITIES_QUERY = "select username, role from user_roles where username = ?";
     public static final String AUTH_ROLE_PREFIX = "ROLE_";

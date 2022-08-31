@@ -4,6 +4,8 @@
  */
 package com.redazz.openeyz.filters;
 
+import com.redazz.openeyz.Exceptions.DataNotFoundException;
+import com.redazz.openeyz.Exceptions.UnauthorizedException;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.defines.Define;
@@ -29,10 +31,10 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class RequestFilter implements Filter {
     private final JwTokenUtils jwt = new JwTokenUtils();
-    
+
     UserService us;
     Initiator initiator;
-    
+
     public RequestFilter(UserService us, Initiator initiator) {
         this.us = us;
         this.initiator = initiator;
@@ -41,40 +43,59 @@ public class RequestFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-        
-        boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.UPLOAD_IMAGE_URL) && req.getMethod().equals("GET");
+
+        boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_IMAGE_URL) && req.getMethod().equals("GET");
         boolean isAccessRefresh = req.getRequestURI().equals(Define.REFRESH_URL);
         boolean isCheckToken = !(isAccessDownloadImg || isAccessRefresh);
         boolean isSupervisorRoute = req.getRequestURI().equals(Define.ADMIN_URL);
 
-        if (isCheckToken) {
-            if (req.getHeader("Authorization") != null) {
-                try {
-                    String token = req.getHeader("Authorization").split("Bearer ")[1];
-                    Jws<Claims> jws = jwt.decode(token);
-                    String usernameToken = jws.getBody().get("username").toString();
-                    Optional<Users> user = us.findById(usernameToken);
-                    if (user.isPresent()) {
-                        Users currentUser = user.get();
-                        initiator.init(currentUser);
-                        String roleToken = jws.getBody().get("role").toString();
-                        boolean isAuthorized = roleToken.equals("SUPERADMIN") || roleToken.equals("ADMIN");
-                        if (isSupervisorRoute && !isAuthorized) {
-                            res.sendError(403, "user is not authorized to access");
-                        }
-                    }
-                    else {
-                        res.sendError(400, "user was not found");
-                    }
-                }
-                catch (ExpiredJwtException | MalformedJwtException | IOException ex) {
-                    res.sendError(401, ex.getMessage());
-                }
+        try {
+            if (isCheckToken) {
+                if (req.getHeader("Authorization") == null) 
+                    throw new DataNotFoundException("authorization header is not present");
+
+                String token = req.getHeader("Authorization").split("Bearer ")[1];
+
+                if (token == null) 
+                    throw new DataNotFoundException("bearer token is not present");
+
+                Jws<Claims> jws = jwt.decode(token);
+                String usernameToken = jws.getBody().get("username").toString();
+                Optional<Users> user = us.findById(usernameToken);
+
+                if (user.isEmpty())
+                    throw new DataNotFoundException("user value is not present");
+
+                Users currentUser = user.get();
+                initiator.init(currentUser);
+                String roleToken = jws.getBody().get("role").toString();
+                boolean isSupervisor = roleToken.equals("SUPERADMIN") || roleToken.equals("ADMIN");
+
+                if (isSupervisorRoute && !isSupervisor) 
+                    throw new UnauthorizedException("user is not authorized to access");
             }
-            else {
-                res.sendError(401, "bearer token was not found");
+            chain.doFilter(request, response);
+        }
+        catch (DataNotFoundException | UnauthorizedException | ExpiredJwtException | MalformedJwtException | IOException ex) {
+            String exceptionClassName = ex.getClass().getSimpleName(); 
+            switch(exceptionClassName) {
+                case "DataNotFoundException":
+                    res.sendError(400, ex.getMessage());
+                    break;
+                case "UnauthorizedException":
+                    res.sendError(403, ex.getMessage());
+                    break;
+                case "ExpiredJwtException":
+                    res.sendError(401, ex.getMessage());
+                    break;
+                case "MalformedJwtException":
+                    res.sendError(401, ex.getMessage());
+                    break;
+                case "IOException":
+                    res.sendError(401, ex.getMessage());
+                    break;
+                default: res.sendError(500, ex.getMessage());
             }
         }
-        chain.doFilter(request, response);
     }
 }

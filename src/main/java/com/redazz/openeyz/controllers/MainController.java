@@ -117,7 +117,7 @@ public class MainController {
                     jws = jwt.decode(token);
                     String usernameToken = jws.getBody().get("username").toString();
                     Optional<Users> user = us.findById(usernameToken);
-                    
+
                     if (user.isPresent()) {
                         response.addHeader("x-auth-token", token);
                         response.addHeader("x-refresh-token", refreshToken);
@@ -320,77 +320,6 @@ public class MainController {
         }
     }
 
-    @Transactional
-    @PostMapping("like")
-    public ResponseEntity<String> postLike(@RequestParam(required = true) long postId) {
-        Optional<Users> author = us.findById(initiator.getUsername());
-        Optional<Post> post = ps.findById(postId);
-        String message;
-        HttpStatus status;
-
-        if (author.isPresent() && post.isPresent()) {
-
-            if (!ls.getUserlikePost(postId, author.get().getUsername())) {
-
-                Likes like = new Likes(post.get(), author.get());
-                ls.save(like);
-                message = "Like successfully added";
-                status = HttpStatus.CREATED;
-            }
-            else {
-                Likes like = ls.findByAuthorAndPost(author.get(), post.get()).get();
-                ls.delete(like);
-                message = "Like successfully removed";
-                status = HttpStatus.OK;
-            }
-        }
-        else {
-            message = "resource values are not present";
-            status = HttpStatus.BAD_REQUEST;
-        }
-
-        return new ResponseEntity<>(message, status);
-    }
-    @GetMapping("like/count")
-    public ResponseEntity<Integer> getCount(@RequestParam(required = true) long postId) {
-        return new ResponseEntity<>(ls.getCount(postId), HttpStatus.OK);
-    }
-
-    // TODO: modify file name of image when on server to get inique image name because it may cause troubles
-    // TODO: delete image from server when image removed from front end on cancel action
-    @GetMapping("image")
-    public ResponseEntity<ByteArrayResource> downloadImage(@RequestParam(required = true) String img) throws IOException {
-        ByteArrayResource image;
-        HttpStatus status;
-        try {
-            image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.ASSETS_DIRECTORY + "/" + img)));
-            status = HttpStatus.OK;
-        }
-        catch (IOException e) {
-            image = null;
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        return new ResponseEntity<>(image, status);
-    }
-    @PostMapping("image")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) {
-        Map<String, String> json = new HashMap<>();
-        HttpStatus status;
-        try {
-            String filename = file.getOriginalFilename();
-            File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
-
-            file.transferTo(dest);
-            //must return json object type with url field according CKEditor config
-            json.put("url", Define.DOWNLOAD_IMAGE_URL + filename);
-            status = HttpStatus.CREATED;
-        }
-        catch (IOException | IllegalStateException e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        return new ResponseEntity<>(json, status);
-    }
-
     @GetMapping("notif")
     public ResponseEntity<List<Notif>> getAllNotifs() {
         return new ResponseEntity<>(ns.getNotifsFromOwner(initiator.getUsername()), HttpStatus.OK);
@@ -444,6 +373,77 @@ public class MainController {
         }
     }
 
+    @Transactional
+    @PostMapping("like")
+    public ResponseEntity<String> postLike(@RequestParam(required = true) long postId) {
+        Optional<Users> author = us.findById(initiator.getUsername());
+        Optional<Post> post = ps.findById(postId);
+        String message;
+        HttpStatus status;
+
+        if (author.isPresent() && post.isPresent()) {
+
+            if (!ls.getUserlikePost(postId, author.get().getUsername())) {
+
+                Likes like = new Likes(post.get(), author.get());
+                ls.save(like);
+                message = "Like successfully added";
+                status = HttpStatus.CREATED;
+            }
+            else {
+                Likes like = ls.findByAuthorAndPost(author.get(), post.get()).get();
+                ls.delete(like);
+                message = "Like successfully removed";
+                status = HttpStatus.OK;
+            }
+        }
+        else {
+            message = "resource values are not present";
+            status = HttpStatus.BAD_REQUEST;
+        }
+
+        return new ResponseEntity<>(message, status);
+    }
+    @GetMapping("like/count")
+    public ResponseEntity<Integer> getCount(@RequestParam(required = true) long postId) {
+        return new ResponseEntity<>(ls.getCount(postId), HttpStatus.OK);
+    }
+
+    // TODO: modify file name of image when on server to get inique image name because it may cause troubles
+    // TODO: delete image from server when image removed from front end on cancel action
+        @PostMapping("img")
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) {
+        Map<String, String> json = new HashMap<>();
+        HttpStatus status;
+        try {
+            String filename = file.getOriginalFilename();
+            File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
+
+            file.transferTo(dest);
+            //must return json object type with url field according CKEditor config
+            json.put("url", Define.DOWNLOAD_IMAGE_URL + filename);
+            status = HttpStatus.CREATED;
+        }
+        catch (IOException | IllegalStateException e) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return new ResponseEntity<>(json, status);
+    }
+    @GetMapping("img")
+    public ResponseEntity<ByteArrayResource> downloadImage(@RequestParam(required = true) String img) throws IOException {
+        ByteArrayResource image;
+        HttpStatus status;
+        try {
+            image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.ASSETS_DIRECTORY + "/" + img)));
+            status = HttpStatus.OK;
+        }
+        catch (IOException e) {
+            image = null;
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return new ResponseEntity<>(image, status);
+    }
+
     @GetMapping("user")
     public ResponseEntity<Users> getUser() {
         return new ResponseEntity<>(us.findById(initiator.getUsername()).get(), HttpStatus.OK);
@@ -452,12 +452,13 @@ public class MainController {
     public ResponseEntity<List<Object>> getAllUsuersSimple() {
         return new ResponseEntity<>(us.getAllSimple(), HttpStatus.OK);
     }
-    @Transactional
-    @PatchMapping("user/dark")
-    public ResponseEntity<String> modifyDark(@RequestParam(required = true) boolean dark) {
-        us.updateDark(dark, initiator.getUsername());
-        return new ResponseEntity<>("Dark theme has been successfully set", HttpStatus.OK);
+    @GetMapping("user/data")
+    public ResponseEntity<Users> getUserData(@RequestParam(required = true) String username) {
+
+        Users user = us.findById(username).get();
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
+    @Transactional
     @PatchMapping("user/lname")
     public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname) {
         us.updateLname(lname, initiator.getUsername());
@@ -468,10 +469,10 @@ public class MainController {
         us.updateName(name, initiator.getUsername());
         return new ResponseEntity<>("Name successfully modified", HttpStatus.OK);
     }
-    @PatchMapping("user/description")
-    public ResponseEntity<String> modifyDescription(@RequestParam(required = true) String description) {
-        us.updateDescription(description, initiator.getUsername());
-        return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
+    @PatchMapping("user/username")
+    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response) {
+        us.updateUsername(username, initiator.getUsername());
+        return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/password")
     public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword) {
@@ -500,8 +501,13 @@ public class MainController {
 
         return new ResponseEntity<>(message, status);
     }
-    @PostMapping("user/img")
-    public ResponseEntity<String> modifyUserImg(@RequestParam(required = true) MultipartFile file) {
+    @PatchMapping("user/description")
+    public ResponseEntity<String> modifyDescription(@RequestParam(required = true) String description) {
+        us.updateDescription(description, initiator.getUsername());
+        return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
+    }
+    @PatchMapping("user/avatar")
+    public ResponseEntity<String> modifyUserAvatar(@RequestParam(required = true) MultipartFile file) {
         HttpStatus status;
         String message;
         try {
@@ -520,17 +526,10 @@ public class MainController {
         }
         return new ResponseEntity<>(message, status);
     }
-    @GetMapping("user/data")
-    public ResponseEntity<Users> getUserData(@RequestParam(required = true) String username) {
-
-        Users user = us.findById(username).get();
-        return new ResponseEntity<>(user, HttpStatus.OK);
-    }
-
-    @PatchMapping("user/username")
-    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response) {
-        us.updateUsername(username, initiator.getUsername());
-        return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
+    @PatchMapping("user/theme")
+    public ResponseEntity<String> modifyTheme(@RequestParam(required = true) boolean dark) {
+        us.updateDark(dark, initiator.getUsername());
+        return new ResponseEntity<>("Dark theme has been successfully set", HttpStatus.OK);
     }
     @DeleteMapping("user/delete")
     public void deleteAccount(HttpServletResponse response) throws IOException {
