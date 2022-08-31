@@ -411,7 +411,7 @@ public class MainController {
 
     // TODO: modify file name of image when on server to get inique image name because it may cause troubles
     // TODO: delete image from server when image removed from front end on cancel action
-        @PostMapping("img")
+    @PostMapping("img")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) {
         Map<String, String> json = new HashMap<>();
         HttpStatus status;
@@ -506,14 +506,14 @@ public class MainController {
         us.updateDescription(description, initiator.getUsername());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
-    @PatchMapping("user/avatar")
+    @PostMapping("user/avatar")
     public ResponseEntity<String> modifyUserAvatar(@RequestParam(required = true) MultipartFile file) {
         HttpStatus status;
         String message;
         try {
             String filename = file.getOriginalFilename();
             File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
-
+            
             file.transferTo(dest);
             us.updateImg(Define.DOWNLOAD_IMAGE_URL + filename, initiator.getUsername());
 

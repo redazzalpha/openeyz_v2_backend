@@ -79,22 +79,12 @@ public class RequestFilter implements Filter {
         catch (DataNotFoundException | UnauthorizedException | ExpiredJwtException | MalformedJwtException | IOException ex) {
             String exceptionClassName = ex.getClass().getSimpleName(); 
             switch(exceptionClassName) {
-                case "DataNotFoundException":
-                    res.sendError(400, ex.getMessage());
-                    break;
-                case "UnauthorizedException":
-                    res.sendError(403, ex.getMessage());
-                    break;
-                case "ExpiredJwtException":
-                    res.sendError(401, ex.getMessage());
-                    break;
-                case "MalformedJwtException":
-                    res.sendError(401, ex.getMessage());
-                    break;
-                case "IOException":
-                    res.sendError(401, ex.getMessage());
-                    break;
-                default: res.sendError(500, ex.getMessage());
+                case "DataNotFoundException" -> res.sendError(400, ex.getMessage());
+                case "UnauthorizedException" -> res.sendError(403, ex.getMessage());
+                case "ExpiredJwtException" -> res.sendError(401, ex.getMessage());
+                case "MalformedJwtException" -> res.sendError(401, ex.getMessage());
+                case "IOException" -> res.sendError(401, ex.getMessage());
+                default -> res.sendError(500, ex.getMessage());
             }
         }
     }
