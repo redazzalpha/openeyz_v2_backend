@@ -35,9 +35,9 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         Optional<Users> user = us.findById(username);
 
         if (user.isPresent()) {
-            jwt.setExpiration(4);
+            jwt.setExpiration(1);
             String token = jwt.encode(username);
-            jwt.setExpiration(3600);
+            jwt.setExpiration(7);
             String refreshToken = jwt.encode(username);
 
             ObjectMapper mapper = new ObjectMapper();

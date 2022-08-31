@@ -506,6 +506,7 @@ public class MainController {
         us.updateDescription(description, initiator.getUsername());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
+    // cannot send multipart file part using patch mapping cause doesn't work only work with post mapping
     @PostMapping("user/avatar")
     public ResponseEntity<String> modifyUserAvatar(@RequestParam(required = true) MultipartFile file) {
         HttpStatus status;
