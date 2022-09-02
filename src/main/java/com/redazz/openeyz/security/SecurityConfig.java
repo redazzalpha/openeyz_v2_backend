@@ -55,6 +55,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilter(new AuthHandler())
                 .logout()
+                .logoutSuccessUrl(Define.LOGOUT_URL)
                 .and()
                 .cors().configurationSource(request -> corsConfiguration(request));
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

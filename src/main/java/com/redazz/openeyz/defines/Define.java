@@ -16,6 +16,7 @@ public class Define {
     public static final String AUTH_FAILURE_URL = ROOT_URL + "/auth-failure";
     public static final String REGISTER_FAILURE_URL = ROOT_URL + "/register-failure";
     public static final String LOCAL_IMAGE_URL = ROOT_URL + "/img";
+    public static final String LOGOUT_URL = ROOT_URL + "/logout";
     
     public static final String ASSETS_DIRECTORY = "assets";
     public static final String ASSETS_USER_DIRECTORY = "assets/users";

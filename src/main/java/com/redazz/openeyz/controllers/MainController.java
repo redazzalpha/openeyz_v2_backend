@@ -508,18 +508,22 @@ public class MainController {
     }
     // cannot send multipart file part using patch mapping cause doesn't work only work with post mapping
     @PostMapping("user/avatar")
-    public ResponseEntity<String> modifyUserAvatar(@RequestParam(required = true) MultipartFile file) {
-        HttpStatus status;
-        String message;
+    public ResponseEntity<String> modifyUserAvatar(@RequestParam(required = false) MultipartFile file) {
+        HttpStatus status = HttpStatus.OK;
+        String message = "user avatar has been successfully removed";
+
+        if (file == null) {
+            us.updateImg(null, initiator.getUsername());
+            return new ResponseEntity<>(message, status);
+        }
         try {
             String filename = file.getOriginalFilename();
             File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
-            
+
             file.transferTo(dest);
             us.updateImg(Define.DOWNLOAD_IMAGE_URL + filename, initiator.getUsername());
 
             message = Define.DOWNLOAD_IMAGE_URL + filename;
-            status = HttpStatus.CREATED;
         }
         catch (IOException | IllegalStateException e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -551,4 +555,10 @@ public class MainController {
         response.getWriter().write(json);
         response.flushBuffer();
     }
+    
+    @GetMapping("logout")
+    public ResponseEntity<String> logout() {
+        return new ResponseEntity<>("logout successfull", HttpStatus.OK);
+    }
+    
 }
