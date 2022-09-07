@@ -5,7 +5,7 @@
 package com.redazz.openeyz.handlers;
 
 import com.redazz.openeyz.Exceptions.DataNotFoundException;
-import com.redazz.openeyz.Exceptions.UnauthorizedException;
+import com.redazz.openeyz.Exceptions.ForbiddenException;
 import com.redazz.openeyz.classes.PublicationComponent;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
@@ -34,7 +34,7 @@ public class ActionHandler {
                 callback.apply(publicationComponent.getId());
             }
             else {
-                throw new UnauthorizedException("User is not authorized to do this action");
+                throw new ForbiddenException("User is not authorized to do this action");
             }
         }
         catch (RuntimeException e) {
@@ -53,7 +53,7 @@ public class ActionHandler {
                 return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
             }
         }
-        catch (UnauthorizedException ex) {
+        catch (ForbiddenException ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
         }
         catch (Exception ex) {

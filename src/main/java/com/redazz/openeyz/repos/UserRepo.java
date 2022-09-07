@@ -18,7 +18,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface UserRepo extends JpaRepository<Users, String> {
-    // TODO: CHANGE type of sent object cause deos not respect convention need get map<string, value> as json insted of get list <object> as list tuple
     @Query(value = "select name, avatar_src, role, users.username from users left join user_roles on users.username = user_roles.username order by name", nativeQuery = true)
     public List<Object> getAllSimple();
 
@@ -53,12 +52,6 @@ public interface UserRepo extends JpaRepository<Users, String> {
     @Query("update Users set avatarSrc = :avatarSrc where username = :userId")
     public void updateImg(String avatarSrc, String userId);
 
-    // TODO: got to check for username modification cause need change cookie from server according the new username, does not work for the moment
-    @Modifying
-    @Transactional
-    @Query("update Users set username = :username where username = :userId")
-    public void updateUsername(String username, String userId);
-    
     @Modifying
     @Transactional
     @Query("update Users set state = :state where username = :userId")
@@ -68,5 +61,11 @@ public interface UserRepo extends JpaRepository<Users, String> {
     @Transactional
     @Query(value = "update user_roles set role = :roleName where username = :userId", nativeQuery = true)
     public void updateRole(String roleName, String userId);
+    
+    // experimental
+    @Modifying
+    @Transactional
+    @Query("update Users set username = :username where username = :userId")
+    public void updateUsername(String username, String userId);
 
 }

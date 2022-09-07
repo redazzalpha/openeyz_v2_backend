@@ -8,8 +8,8 @@ package com.redazz.openeyz.Exceptions;
  *
  * @author kyzer
  */
-public class UnauthorizedException extends Exception {
-    public UnauthorizedException(String message) {
+public class ForbiddenException extends Exception {
+    public ForbiddenException(String message) {
         super(message);
     }
     

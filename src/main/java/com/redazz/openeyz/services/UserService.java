@@ -90,10 +90,10 @@ public class UserService implements Services<Users, String> {
         ur.updateState(state, userId);
     }
     public void updateRole(String roleName, String userId) {
-        ur.updateRole(roleName, userId);        
+        ur.updateRole(roleName, userId);
     }
     
-    // TODO: guess there is problem to modify username to check 
+    // experimental
     public void updateUsername(String username, String userId) {
         ur.updateUsername(username, userId);
     }

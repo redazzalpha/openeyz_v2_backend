@@ -88,7 +88,7 @@ public class MainController {
             Users currentUser = user.get();
             if (!currentUser.getState()) {
                 message = Define.MESSAGE_ERROR_BANNED;
-                status = HttpStatus.UNAUTHORIZED;
+                status = HttpStatus.FORBIDDEN;
             }
             else {
                 message = Define.MESSAGE_ERROR_PASSWORD;
@@ -97,7 +97,7 @@ public class MainController {
         }
         else {
             message = Define.MESSAGE_NOT_FOUND_USER;
-            status = HttpStatus.BAD_REQUEST;
+            status = HttpStatus.UNAUTHORIZED;
         }
         return new ResponseEntity<>(message, status);
     }
@@ -449,7 +449,7 @@ public class MainController {
         return new ResponseEntity<>(us.findById(initiator.getUsername()).get(), HttpStatus.OK);
     }
     @GetMapping("user/simple")
-    public ResponseEntity<List<Object>> getAllUsuersSimple() {
+    public ResponseEntity<List<Object>> getAllSimple() {
         return new ResponseEntity<>(us.getAllSimple(), HttpStatus.OK);
     }
     @GetMapping("user/data")

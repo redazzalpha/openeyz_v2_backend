@@ -4,8 +4,9 @@
  */
 package com.redazz.openeyz.filters;
 
+import com.redazz.openeyz.Exceptions.NoUserFoundException;
 import com.redazz.openeyz.Exceptions.DataNotFoundException;
-import com.redazz.openeyz.Exceptions.UnauthorizedException;
+import com.redazz.openeyz.Exceptions.ForbiddenException;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.defines.Define;
@@ -46,7 +47,8 @@ public class RequestFilter implements Filter {
 
         boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_IMAGE_URL) && req.getMethod().equals("GET");
         boolean isAccessRefresh = req.getRequestURI().equals(Define.REFRESH_URL);
-        boolean isCheckToken = !(isAccessDownloadImg || isAccessRefresh);
+        boolean isAccessLogout = req.getRequestURI().equals(Define.LOGOUT_URL);
+        boolean isCheckToken = !(isAccessDownloadImg || isAccessRefresh || isAccessLogout  );
         boolean isSupervisorRoute = req.getRequestURI().equals(Define.ADMIN_URL);
 
         try {
@@ -64,7 +66,7 @@ public class RequestFilter implements Filter {
                 Optional<Users> user = us.findById(usernameToken);
 
                 if (user.isEmpty())
-                    throw new DataNotFoundException("user value is not present");
+                    throw new NoUserFoundException("user value is not present");
 
                 Users currentUser = user.get();
                 initiator.init(currentUser);
@@ -72,18 +74,19 @@ public class RequestFilter implements Filter {
                 boolean isSupervisor = roleToken.equals("SUPERADMIN") || roleToken.equals("ADMIN");
 
                 if (isSupervisorRoute && !isSupervisor) 
-                    throw new UnauthorizedException("user is not authorized to access");
+                    throw new ForbiddenException("user is not authorized to access");
             }
             chain.doFilter(request, response);
         }
-        catch (DataNotFoundException | UnauthorizedException | ExpiredJwtException | MalformedJwtException | IOException ex) {
+        catch (DataNotFoundException | ForbiddenException | NoUserFoundException | ExpiredJwtException | MalformedJwtException | IOException ex) {
             String exceptionClassName = ex.getClass().getSimpleName(); 
             switch(exceptionClassName) {
                 case "DataNotFoundException" -> res.sendError(400, ex.getMessage());
-                case "UnauthorizedException" -> res.sendError(403, ex.getMessage());
                 case "ExpiredJwtException" -> res.sendError(401, ex.getMessage());
+                case "NoUserFoundException" -> res.sendError(401, ex.getMessage());
                 case "MalformedJwtException" -> res.sendError(401, ex.getMessage());
                 case "IOException" -> res.sendError(401, ex.getMessage());
+                case "ForbiddenException" -> res.sendError(403, ex.getMessage());
                 default -> res.sendError(500, ex.getMessage());
             }
         }
