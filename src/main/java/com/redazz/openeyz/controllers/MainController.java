@@ -26,16 +26,19 @@ import io.jsonwebtoken.Jws;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import javax.persistence.Tuple;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
@@ -512,18 +515,27 @@ public class MainController {
         HttpStatus status = HttpStatus.OK;
         String message = "user avatar has been successfully removed";
 
+        String avatarSrc = initiator.getAvatarSrc();
+
         if (file == null) {
             us.updateImg(null, initiator.getUsername());
+            deleteImg(avatarSrc);
             return new ResponseEntity<>(message, status);
         }
+
         try {
             String filename = file.getOriginalFilename();
-            File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
+            UUID uuid = UUID.randomUUID();
+            String extension = FilenameUtils.getExtension(filename);
+            String filenameUuid = uuid + "." +  extension;
+            File dest = new File(Define.ASSETS_DIRECTORY + "/" + filenameUuid);
 
             file.transferTo(dest);
-            us.updateImg(Define.DOWNLOAD_IMAGE_URL + filename, initiator.getUsername());
+            us.updateImg(Define.DOWNLOAD_IMAGE_URL + filenameUuid, initiator.getUsername());
 
-            message = Define.DOWNLOAD_IMAGE_URL + filename;
+            message = Define.DOWNLOAD_IMAGE_URL + filenameUuid;
+
+            deleteImg(avatarSrc);
         }
         catch (IOException | IllegalStateException e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -555,10 +567,20 @@ public class MainController {
         response.getWriter().write(json);
         response.flushBuffer();
     }
-    
+
     @GetMapping("logout")
     public ResponseEntity<String> logout() {
         return new ResponseEntity<>("logout successfull", HttpStatus.OK);
     }
-    
+
+    private boolean deleteImg(String avatarSrc) {
+        boolean success = false;
+        if (avatarSrc != null) {
+            String path = Define.ASSETS_DIRECTORY + "/" + avatarSrc.split("=")[1];
+            if (path != null) {
+                success = new File(path).delete();
+            }
+        }
+        return success;
+    }
 }

@@ -7,7 +7,7 @@ package com.redazz.openeyz.defines;
 /**
  *
  * @author kyzer
- */
+ */ 
 public class Define {
     public static final String ROOT_URL = "/api";
     public static final String ADMIN_URL = "/admin";
