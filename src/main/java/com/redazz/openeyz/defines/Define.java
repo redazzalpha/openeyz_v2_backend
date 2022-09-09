@@ -46,6 +46,8 @@ public class Define {
     public static final String MESSAGE_ERROR_POST = "An error has occurred when try to post publication";
     public static final String MESSAGE_NOT_FOUND_USER = "user was not found";
     public static final String MESSAGE_NOT_FOUND_POST = "post was not found";
+    
+    public static final int REGISTER_NUM_ARG = 4;
 
     public static final int MULTIPART_UPLOAD_SIZE = 1000000;
 }

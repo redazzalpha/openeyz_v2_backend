@@ -95,7 +95,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         private void register(HttpServletRequest req) {
-            boolean isResgisterAction = req.getParameterMap().size() > 2;
+            boolean isResgisterAction = req.getParameterMap().size() > Define.REGISTER_NUM_ARG;
 
             if (isResgisterAction) {
                 String username, lname, name, password, description;

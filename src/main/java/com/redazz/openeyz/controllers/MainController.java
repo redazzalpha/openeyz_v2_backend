@@ -104,7 +104,6 @@ public class MainController {
         }
         return new ResponseEntity<>(message, status);
     }
-    //TODO : try to see if other error can happen with yarc on bad password or empty fields
     @PostMapping("register-failure")
     public ResponseEntity<String> registerFailure(HttpServletRequest request, HttpServletResponse response) {
         return new ResponseEntity<>("user already exists", HttpStatus.UNAUTHORIZED);
