@@ -83,6 +83,7 @@ public class MainController {
     ActionHandler actionHandler;
     @Autowired
     Initiator initiator;
+    // is used to store temporary image filename
     private List<String> imageTemp = new ArrayList<>();
 
     @PostMapping("auth-failure")
@@ -240,17 +241,20 @@ public class MainController {
             Optional<Users> optUser = us.findById(username);
             if (optUser.isPresent()) {
                 if (!post.isBlank()) {
-
+                    // image publication must be created before post
                     post = injectImgInPost(post, images);
-                    Post newPost = new Post(post, optUser.get());
+                    Post newPost = new Post(post.trim(), optUser.get());
                     ps.save(newPost);
 
+                    // use imageTemp that stores temporary publication image filename
                     for (String path : imageTemp) {
                         is.save(new Image(path, newPost));
                     }
 
                     message = Define.MESSAGE_POST_SUCCESS;
                     status = HttpStatus.CREATED;
+
+                    // if no error delete filenames in imageTemp
                     imageTemp.clear();
                 }
                 else {
@@ -266,6 +270,9 @@ public class MainController {
         catch (IOException e) {
             message = e.getMessage();
             status = HttpStatus.INTERNAL_SERVER_ERROR;
+            // if error on post creation, as publication images has been created 
+            // before publication we need to delete created publication images
+            // by using imageTemp to retrieve image filenames 
             for (String filename : imageTemp) {
                 deleteFile(filename);
             }
@@ -313,15 +320,15 @@ public class MainController {
         Optional<Users> optAuthor = us.findById(initiator.getUsername());
         String message = "Comment successfully created";
         HttpStatus status = HttpStatus.CREATED;
+        
 
         if (optPost.isPresent() && optAuthor.isPresent()) {
 
-            if (comment.isBlank()) {
-
+            if (!comment.isBlank()) {
                 Post post = optPost.get();
                 Users author = optAuthor.get();
 
-                Comment com = new Comment(comment, post, author);
+                Comment com = new Comment(comment.trim(), post, author);
                 cs.save(com);
 
                 Users owner = com.getPost().getAuthor();
@@ -574,7 +581,12 @@ public class MainController {
         String refreshToken = jwt.encode();
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString("");
-        
+
+        List<String> imageList = is.getAllImageFromUserPosts(initiator.getUsername());
+        for (String filename : imageList) {
+            deleteFile(filename);
+        }
+        deleteAvatar(initiator.getAvatarSrc());
         us.deleteById(initiator.getUsername());
 
         response.addHeader("x-auth-token", token);

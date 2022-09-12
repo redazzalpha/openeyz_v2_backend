@@ -17,4 +17,7 @@ public interface ImageRepo extends JpaRepository<Image, Long> {
     @Query("select i from Image i where i.post.id = :postId")
     public List<Image> getImagefromPost(long postId);
     
+    @Query("select i.path from Image i left join Post p on i.post.id = p.id left join Users u on p.author.username = u.username where u.username = :username")
+    public List<String> getAllImageFromUserPosts(String username);
+    
 }

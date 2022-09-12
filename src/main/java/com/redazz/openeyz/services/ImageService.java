@@ -46,4 +46,8 @@ public class ImageService implements Services<Image, Long>{
     public List<Image> getImagefromPost(long postId) {
         return ir.getImagefromPost(postId);
     }
+    
+    public List<String> getAllImageFromUserPosts(String username) {
+        return ir.getAllImageFromUserPosts(username);
+    }
 }

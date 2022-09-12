@@ -18,14 +18,15 @@ public class Define {
     public static final String LOCAL_IMAGE_URL = ROOT_URL + "/img";
     public static final String LOGOUT_URL = ROOT_URL + "/logout";
     
+    
     public static final String ASSETS_DIRECTORY = "assets";
     public static final String ASSETS_USER_DIRECTORY = "assets/users";
     
-//    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";
-    public static final String SERVER_DOMAIN = "http://localhost:8081";
+    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";
+//    public static final String SERVER_DOMAIN = "http://localhost:8081";
 
-//    public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
-    public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
+    public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
+//    public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
 
     public static final String DOWNLOAD_IMAGE_URL = SERVER_DOMAIN + "/api/img?img=";
 
@@ -51,5 +52,5 @@ public class Define {
     
     public static final int REGISTER_NUM_ARG = 4;
 
-    public static final int MULTIPART_UPLOAD_SIZE = 1000000;
+    public static final int MULTIPART_UPLOAD_SIZE = 10000000;
 }
