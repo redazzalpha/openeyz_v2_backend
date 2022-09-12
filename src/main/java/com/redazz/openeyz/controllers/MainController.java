@@ -16,6 +16,7 @@ import com.redazz.openeyz.models.Notif;
 import com.redazz.openeyz.models.Post;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.CommentService;
+import com.redazz.openeyz.services.ImageService;
 import com.redazz.openeyz.services.LikesService;
 import com.redazz.openeyz.services.NotifService;
 import com.redazz.openeyz.services.PostService;
@@ -70,6 +71,8 @@ public class MainController {
     LikesService ls;
     @Autowired
     NotifService ns;
+    @Autowired
+    ImageService is;
     @Autowired
     JwTokenUtils jwt;
     @Autowired
@@ -422,7 +425,7 @@ public class MainController {
             File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
 
             file.transferTo(dest);
-            //must return json object type with url field according CKEditor config
+            //got to return json object type with url field according CKEditor config
             json.put("url", Define.DOWNLOAD_IMAGE_URL + filename);
             status = HttpStatus.CREATED;
         }
