@@ -53,5 +53,4 @@ public class Initiator {
     public String getRole() {
         return roles.get(0).getRoleName().toString();
     }
-
 }

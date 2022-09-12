@@ -20,7 +20,6 @@ public class Define {
     
     public static final String ASSETS_DIRECTORY = "assets";
     public static final String ASSETS_USER_DIRECTORY = "assets/users";
-
     
 //    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";
     public static final String SERVER_DOMAIN = "http://localhost:8081";
@@ -46,6 +45,9 @@ public class Define {
     public static final String MESSAGE_ERROR_POST = "An error has occurred when try to post publication";
     public static final String MESSAGE_NOT_FOUND_USER = "user was not found";
     public static final String MESSAGE_NOT_FOUND_POST = "post was not found";
+    public static final String MESSAGE_EMPTY_POST = "post is empty";
+    public static final String MESSAGE_EMPTY_COMMENT = "comment is empty";
+    public static final String MESSAGE_UNAVAILABLE_RESOURCES = "sources are unavailable";
     
     public static final int REGISTER_NUM_ARG = 4;
 

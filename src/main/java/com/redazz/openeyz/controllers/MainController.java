@@ -11,6 +11,7 @@ import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.ActionHandler;
 import com.redazz.openeyz.models.Comment;
+import com.redazz.openeyz.models.Image;
 import com.redazz.openeyz.models.Likes;
 import com.redazz.openeyz.models.Notif;
 import com.redazz.openeyz.models.Post;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,6 +83,7 @@ public class MainController {
     ActionHandler actionHandler;
     @Autowired
     Initiator initiator;
+    private List<String> imageTemp = new ArrayList<>();
 
     @PostMapping("auth-failure")
     public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
@@ -228,25 +231,45 @@ public class MainController {
     }
     @Transactional
     @PostMapping("publication")
-    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post) {
+    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post, @RequestParam(required = true) MultipartFile[] images) {
         String username = initiator.getUsername();
         String message;
         HttpStatus status;
+
         try {
-            Optional<Users> user = us.findById(username);
-            if (user.isPresent()) {
-                ps.save(new Post(post, user.get()));
-                message = Define.MESSAGE_POST_SUCCESS;
-                status = HttpStatus.CREATED;
+            Optional<Users> optUser = us.findById(username);
+            if (optUser.isPresent()) {
+                if (!post.isBlank()) {
+
+                    post = injectImgInPost(post, images);
+                    Post newPost = new Post(post, optUser.get());
+                    ps.save(newPost);
+
+                    for (String path : imageTemp) {
+                        is.save(new Image(path, newPost));
+                    }
+
+                    message = Define.MESSAGE_POST_SUCCESS;
+                    status = HttpStatus.CREATED;
+                    imageTemp.clear();
+                }
+                else {
+                    message = Define.MESSAGE_EMPTY_POST;
+                    status = HttpStatus.BAD_REQUEST;
+                }
             }
             else {
                 message = Define.MESSAGE_NOT_FOUND_USER;
                 status = HttpStatus.BAD_REQUEST;
             }
         }
-        catch (Exception e) {
+        catch (IOException e) {
             message = e.getMessage();
             status = HttpStatus.INTERNAL_SERVER_ERROR;
+            for (String filename : imageTemp) {
+                deleteFile(filename);
+            }
+            imageTemp.clear();
         }
         return new ResponseEntity<>(message, status);
     }
@@ -256,6 +279,12 @@ public class MainController {
             Optional<Post> post = ps.findById(postId);
             if (post.isPresent()) {
                 return actionHandler.run(initiator.getUsername(), post.get(), (idPost) -> {
+
+                    List<Image> li = is.getImagefromPost(idPost);
+                    for (Image i : li) {
+                        deleteFile(i.getPath());
+                    }
+
                     ps.deleteById(idPost);
                     return null;
                 });
@@ -287,20 +316,27 @@ public class MainController {
 
         if (optPost.isPresent() && optAuthor.isPresent()) {
 
-            Post post = optPost.get();
-            Users author = optAuthor.get();
+            if (comment.isBlank()) {
 
-            Comment com = new Comment(comment, post, author);
-            cs.save(com);
+                Post post = optPost.get();
+                Users author = optAuthor.get();
 
-            Users owner = com.getPost().getAuthor();
-            if (!author.getUsername().equals(owner.getUsername())) {
-                Notif notif = new Notif(false, owner, com, author);
-                ns.save(notif);
+                Comment com = new Comment(comment, post, author);
+                cs.save(com);
+
+                Users owner = com.getPost().getAuthor();
+                if (!author.getUsername().equals(owner.getUsername())) {
+                    Notif notif = new Notif(false, owner, com, author);
+                    ns.save(notif);
+                }
+            }
+            else {
+                message = Define.MESSAGE_EMPTY_COMMENT;
+                status = HttpStatus.BAD_REQUEST;
             }
         }
         else {
-            message = "sources are unavailable";
+            message = Define.MESSAGE_UNAVAILABLE_RESOURCES;
             status = HttpStatus.BAD_REQUEST;
         }
 
@@ -414,26 +450,6 @@ public class MainController {
         return new ResponseEntity<>(ls.getCount(postId), HttpStatus.OK);
     }
 
-    // TODO: modify file name of image when on server to get inique image name because it may cause troubles
-    // TODO: delete image from server when image removed from front end on cancel action
-    @PostMapping("img")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = true) MultipartFile file) {
-        Map<String, String> json = new HashMap<>();
-        HttpStatus status;
-        try {
-            String filename = file.getOriginalFilename();
-            File dest = new File(Define.ASSETS_DIRECTORY + "/" + filename);
-
-            file.transferTo(dest);
-            //got to return json object type with url field according CKEditor config
-            json.put("url", Define.DOWNLOAD_IMAGE_URL + filename);
-            status = HttpStatus.CREATED;
-        }
-        catch (IOException | IllegalStateException e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        return new ResponseEntity<>(json, status);
-    }
     @GetMapping("img")
     public ResponseEntity<ByteArrayResource> downloadImage(@RequestParam(required = true) String img) throws IOException {
         ByteArrayResource image;
@@ -521,7 +537,7 @@ public class MainController {
 
         if (file == null) {
             us.updateImg(null, initiator.getUsername());
-            deleteImg(avatarSrc);
+            deleteAvatar(avatarSrc);
             return new ResponseEntity<>(message, status);
         }
 
@@ -529,7 +545,7 @@ public class MainController {
             String filename = file.getOriginalFilename();
             UUID uuid = UUID.randomUUID();
             String extension = FilenameUtils.getExtension(filename);
-            String filenameUuid = uuid + "." +  extension;
+            String filenameUuid = uuid + "." + extension;
             File dest = new File(Define.ASSETS_DIRECTORY + "/" + filenameUuid);
 
             file.transferTo(dest);
@@ -537,7 +553,7 @@ public class MainController {
 
             message = Define.DOWNLOAD_IMAGE_URL + filenameUuid;
 
-            deleteImg(avatarSrc);
+            deleteAvatar(avatarSrc);
         }
         catch (IOException | IllegalStateException e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -558,7 +574,7 @@ public class MainController {
         String refreshToken = jwt.encode();
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString("");
-
+        
         us.deleteById(initiator.getUsername());
 
         response.addHeader("x-auth-token", token);
@@ -575,7 +591,7 @@ public class MainController {
         return new ResponseEntity<>("logout successfull", HttpStatus.OK);
     }
 
-    private boolean deleteImg(String avatarSrc) {
+    private boolean deleteAvatar(String avatarSrc) {
         boolean success = false;
         if (avatarSrc != null) {
             String path = Define.ASSETS_DIRECTORY + "/" + avatarSrc.split("=")[1];
@@ -584,5 +600,35 @@ public class MainController {
             }
         }
         return success;
+    }
+    private boolean deleteFile(String filename) {
+        boolean success = false;
+        if (filename != null) {
+            String path = Define.ASSETS_DIRECTORY + "/" + filename;
+            if (path != null) {
+                success = new File(path).delete();
+            }
+        }
+        return success;
+    }
+    private String injectImgInPost(String post, MultipartFile[] images) throws IOException {
+        StringBuilder postSb = new StringBuilder(post);
+        String replaceSource = "<img ";
+        String filename, extension, uuid, replaceStr;
+        int indexOfReplaceSource, fromIndex = 0;
+        File dest;
+        for (MultipartFile image : images) {
+            extension = FilenameUtils.getExtension(image.getOriginalFilename());
+            uuid = UUID.randomUUID().toString();
+            replaceStr = "<img src='" + Define.DOWNLOAD_IMAGE_URL + uuid + "." + extension + "' ";
+            indexOfReplaceSource = postSb.indexOf(replaceSource, fromIndex);
+            post = postSb.replace(indexOfReplaceSource, indexOfReplaceSource + replaceSource.length(), replaceStr).toString();
+            fromIndex = indexOfReplaceSource + replaceStr.length();
+            filename = Define.ASSETS_DIRECTORY + "/" + uuid + "." + extension;
+            dest = new File(filename);
+            image.transferTo(dest);
+            imageTemp.add(uuid + "." + extension);
+        }
+        return post;
     }
 }

@@ -42,4 +42,8 @@ public class ImageService implements Services<Image, Long>{
     public void delete(Image entity) {
         ir.delete(entity);
     }
+    
+    public List<Image> getImagefromPost(long postId) {
+        return ir.getImagefromPost(postId);
+    }
 }

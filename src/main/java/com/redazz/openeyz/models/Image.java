@@ -42,6 +42,7 @@ public class Image implements Serializable {
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "post_id", referencedColumnName = "id")
+    @NonNull
     private Post post;
 
     
