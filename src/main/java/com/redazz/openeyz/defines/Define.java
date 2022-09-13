@@ -22,11 +22,11 @@ public class Define {
     public static final String ASSETS_DIRECTORY = "assets";
     public static final String ASSETS_USER_DIRECTORY = "assets/users";
     
-    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";
-//    public static final String SERVER_DOMAIN = "http://localhost:8081";
+//    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";
+    public static final String SERVER_DOMAIN = "http://localhost:8081";
 
-    public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
-//    public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
+//    public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
+    public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
 
     public static final String DOWNLOAD_IMAGE_URL = SERVER_DOMAIN + "/api/img?img=";
 

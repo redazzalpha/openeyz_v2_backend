@@ -10,6 +10,7 @@ import com.redazz.openeyz.Exceptions.ForbiddenException;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.defines.Define;
+import com.redazz.openeyz.enums.RoleEnum;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
 import io.jsonwebtoken.Claims;
@@ -25,7 +26,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.fileupload.FileUploadBase;
 
 /**
  *
@@ -49,7 +49,7 @@ public class RequestFilter implements Filter {
         boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_IMAGE_URL) && req.getMethod().equals("GET");
         boolean isAccessRefresh = req.getRequestURI().equals(Define.REFRESH_URL);
         boolean isAccessLogout = req.getRequestURI().equals(Define.LOGOUT_URL);
-        boolean isCheckToken = !(isAccessDownloadImg || isAccessRefresh || isAccessLogout  );
+        boolean isCheckToken = !(isAccessDownloadImg || isAccessRefresh || isAccessLogout);
         boolean isSupervisorRoute = req.getRequestURI().equals(Define.ADMIN_URL);
 
         try {
@@ -64,16 +64,20 @@ public class RequestFilter implements Filter {
 
                 Jws<Claims> jws = jwt.decode(token);
                 String usernameToken = jws.getBody().get("username").toString();
-                Optional<Users> user = us.findById(usernameToken);
+                Optional<Users> optUser = us.findById(usernameToken);
 
-                if (user.isEmpty())
+                if (optUser.isEmpty())
                     throw new NoUserFoundException("user value is not present");
 
-                Users currentUser = user.get();
+                Users currentUser = optUser.get();
                 initiator.init(currentUser);
                 String roleToken = jws.getBody().get("role").toString();
-                boolean isSupervisor = roleToken.equals("SUPERADMIN") || roleToken.equals("ADMIN");
+                boolean isSupervisor = roleToken.equals(RoleEnum.SUPERADMIN.toString()) || roleToken.equals(RoleEnum.ADMIN.toString());
+                boolean isBanned = !initiator.getState();
 
+                if(isBanned)
+                    throw new ForbiddenException("your account has been disabled");
+                
                 if (isSupervisorRoute && !isSupervisor) 
                     throw new ForbiddenException("user is not authorized to access");
             }
