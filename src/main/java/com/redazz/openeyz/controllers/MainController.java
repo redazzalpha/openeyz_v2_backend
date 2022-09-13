@@ -625,17 +625,17 @@ public class MainController {
     private String injectImgInPost(String post, MultipartFile[] images) throws IOException {
         if (images != null) {
             StringBuilder postSb = new StringBuilder(post);
-            String replaceSource = "<img ";
+            String replaceSource = "<img";
             String filename, extension, uuid, replaceStr;
             int indexOfReplaceSource, fromIndex = 0;
             File dest;
             for (MultipartFile image : images) {
                 extension = FilenameUtils.getExtension(image.getOriginalFilename());
                 uuid = UUID.randomUUID().toString();
-                replaceStr = "<img src='" + Define.DOWNLOAD_IMAGE_URL + uuid + "." + extension + "' ";
+                replaceStr = "<img style='width: 100%; object-fit: cover;' src='" + Define.DOWNLOAD_IMAGE_URL + uuid + "." + extension + "' ";
                 indexOfReplaceSource = postSb.indexOf(replaceSource, fromIndex);
                 post = postSb.replace(indexOfReplaceSource, indexOfReplaceSource + replaceSource.length(), replaceStr).toString();
-                fromIndex = indexOfReplaceSource + replaceStr.length();
+                fromIndex = indexOfReplaceSource + replaceStr.length() -1;
                 filename = Define.ASSETS_DIRECTORY + "/" + uuid + "." + extension;
                 dest = new File(filename);
                 image.transferTo(dest);
