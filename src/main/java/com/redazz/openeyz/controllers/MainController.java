@@ -232,7 +232,7 @@ public class MainController {
     }
     @Transactional
     @PostMapping("publication")
-    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post, @RequestParam(required = true) MultipartFile[] images) {
+    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post, @RequestParam(required = false) MultipartFile[] images) {
         String username = initiator.getUsername();
         String message;
         HttpStatus status;
@@ -320,7 +320,6 @@ public class MainController {
         Optional<Users> optAuthor = us.findById(initiator.getUsername());
         String message = "Comment successfully created";
         HttpStatus status = HttpStatus.CREATED;
-        
 
         if (optPost.isPresent() && optAuthor.isPresent()) {
 
@@ -624,22 +623,24 @@ public class MainController {
         return success;
     }
     private String injectImgInPost(String post, MultipartFile[] images) throws IOException {
-        StringBuilder postSb = new StringBuilder(post);
-        String replaceSource = "<img ";
-        String filename, extension, uuid, replaceStr;
-        int indexOfReplaceSource, fromIndex = 0;
-        File dest;
-        for (MultipartFile image : images) {
-            extension = FilenameUtils.getExtension(image.getOriginalFilename());
-            uuid = UUID.randomUUID().toString();
-            replaceStr = "<img src='" + Define.DOWNLOAD_IMAGE_URL + uuid + "." + extension + "' ";
-            indexOfReplaceSource = postSb.indexOf(replaceSource, fromIndex);
-            post = postSb.replace(indexOfReplaceSource, indexOfReplaceSource + replaceSource.length(), replaceStr).toString();
-            fromIndex = indexOfReplaceSource + replaceStr.length();
-            filename = Define.ASSETS_DIRECTORY + "/" + uuid + "." + extension;
-            dest = new File(filename);
-            image.transferTo(dest);
-            imageTemp.add(uuid + "." + extension);
+        if (images != null) {
+            StringBuilder postSb = new StringBuilder(post);
+            String replaceSource = "<img ";
+            String filename, extension, uuid, replaceStr;
+            int indexOfReplaceSource, fromIndex = 0;
+            File dest;
+            for (MultipartFile image : images) {
+                extension = FilenameUtils.getExtension(image.getOriginalFilename());
+                uuid = UUID.randomUUID().toString();
+                replaceStr = "<img src='" + Define.DOWNLOAD_IMAGE_URL + uuid + "." + extension + "' ";
+                indexOfReplaceSource = postSb.indexOf(replaceSource, fromIndex);
+                post = postSb.replace(indexOfReplaceSource, indexOfReplaceSource + replaceSource.length(), replaceStr).toString();
+                fromIndex = indexOfReplaceSource + replaceStr.length();
+                filename = Define.ASSETS_DIRECTORY + "/" + uuid + "." + extension;
+                dest = new File(filename);
+                image.transferTo(dest);
+                imageTemp.add(uuid + "." + extension);
+            }
         }
         return post;
     }
