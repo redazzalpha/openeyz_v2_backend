@@ -36,7 +36,7 @@ public class Image implements Serializable {
     protected long id;
     @NonNull
     @Column(nullable = false)
-    private String path;
+    private String filename;
     
     //relationships
     @ManyToOne

@@ -28,9 +28,7 @@ import io.jsonwebtoken.Jws;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +104,7 @@ public class MainController {
             }
         }
         else {
-            message = Define.MESSAGE_NOT_FOUND_USER;
+            message = Define.MESSAGE_ERROR_NOT_FOUND_USER;
             status = HttpStatus.UNAUTHORIZED;
         }
         return new ResponseEntity<>(message, status);
@@ -247,23 +245,23 @@ public class MainController {
                     ps.save(newPost);
 
                     // use imageTemp that stores temporary publication image filename
-                    for (String path : imageTemp) {
-                        is.save(new Image(path, newPost));
+                    for (String filename : imageTemp) {
+                        is.save(new Image(filename, newPost));
                     }
 
-                    message = Define.MESSAGE_POST_SUCCESS;
+                    message = Define.MESSAGE_SUCCESS_POST;
                     status = HttpStatus.CREATED;
 
                     // if no error delete filenames in imageTemp
                     imageTemp.clear();
                 }
                 else {
-                    message = Define.MESSAGE_EMPTY_POST;
+                    message = Define.MESSAGE_ERROR_EMPTY_POST;
                     status = HttpStatus.BAD_REQUEST;
                 }
             }
             else {
-                message = Define.MESSAGE_NOT_FOUND_USER;
+                message = Define.MESSAGE_ERROR_NOT_FOUND_USER;
                 status = HttpStatus.BAD_REQUEST;
             }
         }
@@ -274,7 +272,7 @@ public class MainController {
             // before publication we need to delete created publication images
             // by using imageTemp to retrieve image filenames 
             for (String filename : imageTemp) {
-                deleteFile(filename);
+                deleteImage(filename);
             }
             imageTemp.clear();
         }
@@ -289,7 +287,7 @@ public class MainController {
 
                     List<Image> li = is.getImagefromPost(idPost);
                     for (Image i : li) {
-                        deleteFile(i.getPath());
+                        deleteImage(i.getFilename());
                     }
 
                     ps.deleteById(idPost);
@@ -337,12 +335,12 @@ public class MainController {
                 }
             }
             else {
-                message = Define.MESSAGE_EMPTY_COMMENT;
+                message = Define.MESSAGE_ERROR_EMPTY_COMMENT;
                 status = HttpStatus.BAD_REQUEST;
             }
         }
         else {
-            message = Define.MESSAGE_UNAVAILABLE_RESOURCES;
+            message = Define.MESSAGE_ERROR_UNAVAILABLE_RESOURCES;
             status = HttpStatus.BAD_REQUEST;
         }
 
@@ -461,7 +459,7 @@ public class MainController {
         ByteArrayResource image;
         HttpStatus status;
         try {
-            image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.ASSETS_DIRECTORY + "/" + img)));
+            image = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.IMAGES_DIRECTORY + "/" + img)));
             status = HttpStatus.OK;
         }
         catch (IOException e) {
@@ -469,6 +467,20 @@ public class MainController {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
         return new ResponseEntity<>(image, status);
+    }
+    @GetMapping("avatar")
+    public ResponseEntity<ByteArrayResource> downloadAvatar(@RequestParam(required = true) String img) throws IOException {
+        ByteArrayResource avatar;
+        HttpStatus status;
+        try {
+            avatar = new ByteArrayResource(Files.readAllBytes(Paths.get(Define.AVATARS_DIRECTORY + "/" + img)));
+            status = HttpStatus.OK;
+        }
+        catch (IOException e) {
+            avatar = null;
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return new ResponseEntity<>(avatar, status);
     }
 
     @GetMapping("user")
@@ -552,12 +564,12 @@ public class MainController {
             UUID uuid = UUID.randomUUID();
             String extension = FilenameUtils.getExtension(filename);
             String filenameUuid = uuid + "." + extension;
-            File dest = new File(Define.ASSETS_DIRECTORY + "/" + filenameUuid);
+            File dest = new File(Define.AVATARS_DIRECTORY + "/" + filenameUuid);
 
             file.transferTo(dest);
-            us.updateImg(Define.DOWNLOAD_IMAGE_URL + filenameUuid, initiator.getUsername());
+            us.updateImg(Define.DOWNLOAD_AVATAR_URL + filenameUuid, initiator.getUsername());
 
-            message = Define.DOWNLOAD_IMAGE_URL + filenameUuid;
+            message = Define.DOWNLOAD_AVATAR_URL + filenameUuid;
 
             deleteAvatar(avatarSrc);
         }
@@ -583,7 +595,7 @@ public class MainController {
 
         List<String> imageList = is.getAllImageFromUserPosts(initiator.getUsername());
         for (String filename : imageList) {
-            deleteFile(filename);
+            deleteImage(filename);
         }
         deleteAvatar(initiator.getAvatarSrc());
         us.deleteById(initiator.getUsername());
@@ -605,17 +617,17 @@ public class MainController {
     private boolean deleteAvatar(String avatarSrc) {
         boolean success = false;
         if (avatarSrc != null) {
-            String path = Define.ASSETS_DIRECTORY + "/" + avatarSrc.split("=")[1];
+            String path = Define.AVATARS_DIRECTORY + "/" + avatarSrc.split("=")[1];
             if (path != null) {
                 success = new File(path).delete();
             }
         }
         return success;
     }
-    private boolean deleteFile(String filename) {
+    private boolean deleteImage(String filename) {
         boolean success = false;
         if (filename != null) {
-            String path = Define.ASSETS_DIRECTORY + "/" + filename;
+            String path = Define.IMAGES_DIRECTORY + "/" + filename;
             if (path != null) {
                 success = new File(path).delete();
             }
@@ -636,7 +648,7 @@ public class MainController {
                 indexOfReplaceSource = postSb.indexOf(replaceSource, fromIndex);
                 post = postSb.replace(indexOfReplaceSource, indexOfReplaceSource + replaceSource.length(), replaceStr).toString();
                 fromIndex = indexOfReplaceSource + replaceStr.length() -1;
-                filename = Define.ASSETS_DIRECTORY + "/" + uuid + "." + extension;
+                filename = Define.IMAGES_DIRECTORY + "/" + uuid + "." + extension;
                 dest = new File(filename);
                 image.transferTo(dest);
                 imageTemp.add(uuid + "." + extension);
