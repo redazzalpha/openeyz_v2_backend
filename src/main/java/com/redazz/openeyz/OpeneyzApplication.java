@@ -22,20 +22,23 @@ public class OpeneyzApplication {
     @Bean
     public CommandLineRunner initCfg() {
         return args -> {
-            Users max = new Users("max@gmail.com", "Dubois", "Max", "1234abdcL?", "");
-            Users alice = new Users("alice@gmail.com", "Dubois", "alice", "4321LpTZ28!", "");
-            us.save(max);
-            us.save(alice);
+            Users suadmin = new Users("suadmin@gmail.com", "SuperAdmin", "SuperAdmin", "1234abdcL?", "Je suis super administrateur");
+            Users admin = new Users("admin@gmail.com", "Admin", "Admin", "1234abdcL?", "Je suis administrateur");
+            Users user = new Users("user@gmail.com", "User", "User", "1234abdcL?", "je suis utilisateur");
+            us.save(suadmin);
+            us.save(admin);
+            us.save(user);
 
-            Role user = new Role(RoleEnum.USER);
-            Role admin = new Role(RoleEnum.ADMIN);
-            Role superadmin = new Role(RoleEnum.SUPERADMIN);
-            rs.save(user);
-            rs.save(admin);
-            rs.save(superadmin);
+            Role suadminRole = new Role(RoleEnum.SUPERADMIN);
+            Role adminRole = new Role(RoleEnum.ADMIN);
+            Role userRole = new Role(RoleEnum.USER);
+            rs.save(suadminRole);
+            rs.save(adminRole);
+            rs.save(userRole);
 
-            us.addRoleToUser(max.getUsername(), superadmin.getRoleName());
-            us.addRoleToUser(alice.getUsername(), admin.getRoleName());
+            us.addRoleToUser(suadmin.getUsername(), suadminRole.getRoleName());
+            us.addRoleToUser(admin.getUsername(),   adminRole.getRoleName());
+            us.addRoleToUser(user.getUsername(), userRole.getRoleName());
         };
     }
 }
