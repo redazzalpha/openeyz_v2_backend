@@ -38,10 +38,12 @@ public class Users implements Serializable {
     private String username;
 
     @NonNull
+    @Length(min = 2, max = 20)
     @Column(nullable = false)
     private String lname;
 
     @NonNull
+    @Length(min = 2, max = 20)
     @Column(nullable = false)
     private String name;
 
