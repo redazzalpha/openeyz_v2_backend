@@ -556,7 +556,7 @@ public class MainController {
         if (file == null) {
             us.updateImg(null, initiator.getUsername());
             deleteAvatar(avatarSrc);
-            return new ResponseEntity<>(message, status);
+            return new ResponseEntity<>(null, status);
         }
 
         try {
