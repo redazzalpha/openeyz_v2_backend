@@ -9,7 +9,7 @@ package com.redazz.openeyz.defines;
  * @author kyzer
  */ 
 public class Define {
-    public static final String ROOT_URL = "/api";
+    public static final String ROOT_URL = "/api";   
     public static final String ADMIN_URL = "/admin";
     
     public static final String ACCESS_URL = ROOT_URL + "/access";
@@ -25,7 +25,7 @@ public class Define {
     public static final String AVATARS_DIRECTORY = ASSETS_DIRECTORY + "/avatars";
     public static final String IMAGES_DIRECTORY = ASSETS_DIRECTORY + "/images";
     
-    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";
+    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";    
     public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
     
 //    public static final String SERVER_DOMAIN = "http://localhost:8081";
