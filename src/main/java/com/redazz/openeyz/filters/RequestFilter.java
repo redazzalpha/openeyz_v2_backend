@@ -34,12 +34,14 @@ import javax.servlet.http.HttpServletResponse;
 public class RequestFilter implements Filter {
     private final JwTokenUtils jwt = new JwTokenUtils();
 
-    UserService us;
-    Initiator initiator;
+    private UserService us;
+    private Initiator initiator;
+    private String secret;
 
-    public RequestFilter(UserService us, Initiator initiator) {
+    public RequestFilter(UserService us, Initiator initiator, String secret) {
         this.us = us;
         this.initiator = initiator;
+        this.secret = secret;
     }
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -63,7 +65,7 @@ public class RequestFilter implements Filter {
                 if (token == null) 
                     throw new DataNotFoundException("bearer token is not present");
 
-                Jws<Claims> jws = jwt.decode(token);
+                Jws<Claims> jws = jwt.decode(token, secret);
                 String usernameToken = jws.getBody().get("username").toString();
                 Optional<Users> optUser = us.findById(usernameToken);
 

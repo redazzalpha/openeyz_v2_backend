@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,6 +84,9 @@ public class MainController {
     Initiator initiator;
     // is used to store temporary image filename
     private List<String> imageTemp = new ArrayList<>();
+    
+    @Value("${jwt.secret}")
+    private String secret;
 
     @PostMapping("auth-failure")
     public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
@@ -121,7 +125,7 @@ public class MainController {
                 String token = request.getHeader("Authorization").split("Bearer ")[1];
                 Jws<Claims> jws;
                 try {
-                    jws = jwt.decode(token);
+                    jws = jwt.decode(token, secret);
                     String usernameToken = jws.getBody().get("username").toString();
                     Optional<Users> user = us.findById(usernameToken);
 
@@ -133,13 +137,13 @@ public class MainController {
                 }
                 catch (ExpiredJwtException e) {
                     try {
-                        jws = jwt.decode(refreshToken);
+                        jws = jwt.decode(refreshToken, secret);
                         String usernameRfrshToken = jws.getBody().get("username").toString();
                         Optional<Users> user = us.findById(usernameRfrshToken);
 
                         if (user.isPresent()) {
                             String username = user.get().getUsername();
-                            String newToken = jwt.encode(username);
+                            String newToken = jwt.encode(username, secret);
                             response.addHeader("x-auth-token", newToken);
                             response.addHeader("x-refresh-token", refreshToken);
                             return new ResponseEntity<>(user.get(), HttpStatus.OK);
@@ -587,9 +591,9 @@ public class MainController {
     @DeleteMapping("user/delete")
     public void deleteAccount(HttpServletResponse response) throws IOException {
         jwt.setExpiration(0);
-        String token = jwt.encode();
+        String token = jwt.encode(secret);
         jwt.setExpiration(0);
-        String refreshToken = jwt.encode();
+        String refreshToken = jwt.encode(secret);
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString("");
 

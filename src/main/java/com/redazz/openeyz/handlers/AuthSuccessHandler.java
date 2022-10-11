@@ -14,6 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,8 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     UserService us;
     @Autowired
     JwTokenUtils jwt;
+    @Value("${jwt.secret}")
+    private String secret;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -35,10 +38,10 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
         Optional<Users> user = us.findById(username);
 
         if (user.isPresent()) {
-            jwt.setExpiration(1);
-            String token = jwt.encode(username);
+            jwt.setExpiration(1);            
+            String token = jwt.encode(username, secret);
             jwt.setExpiration(7);
-            String refreshToken = jwt.encode(username);
+            String refreshToken = jwt.encode(username, secret);
 
             ObjectMapper mapper = new ObjectMapper();
             String userJson = mapper.writeValueAsString(user.get());

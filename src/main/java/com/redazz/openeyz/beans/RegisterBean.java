@@ -8,6 +8,7 @@ import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.filters.RequestFilter;
 import com.redazz.openeyz.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,11 +25,14 @@ public class RegisterBean {
     UserService us;
     @Autowired
     Initiator initiator;
+    
+    @Value("${jwt.secret}")
+    private String secret;
 
     @Bean
     public FilterRegistrationBean<RequestFilter> requestFilter() {
         FilterRegistrationBean<RequestFilter> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new RequestFilter(us, initiator));
+        registrationBean.setFilter(new RequestFilter(us, initiator, secret));
         registrationBean.addUrlPatterns("*");
         registrationBean.setOrder(1);
 

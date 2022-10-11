@@ -18,7 +18,6 @@ import java.util.Date;
 import java.util.UUID;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,14 +29,9 @@ public class JwTokenUtils {
     @Autowired
     UserService us;
     private long expiration;
-    // Key is hardcoded here for simplicity. 
-    // Ideally this will get loaded from env configuration/secret vault
-    @Value("${jwt.secret}")
-    private String secret = "asdfSFS34wfsdfsdfSDSD32dfsddDDerQSNCK34SOWEK5354fdgdf4";
-    Key hmacKey;
+    private Key hmacKey;
 
     public JwTokenUtils() {
-        hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
         this.expiration = 1;
     }
 
@@ -45,7 +39,9 @@ public class JwTokenUtils {
         this.expiration = expiration;
     }
 
-    public String encode(String username) {
+    public String encode(String username, String secret) {
+        hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
+
         Instant now = Instant.now();
         Users user = us.findById(username).get();
         String jwtToken = Jwts.builder()
@@ -60,7 +56,9 @@ public class JwTokenUtils {
         expiration = 1;
         return jwtToken;
     }
-    public String encode() {
+    public String encode(String secret) {
+        hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
+       
         Instant now = Instant.now();
         String jwtToken = Jwts.builder()
                 .setId(UUID.randomUUID().toString())
@@ -71,9 +69,9 @@ public class JwTokenUtils {
 
         return jwtToken;
     }
-    public Jws<Claims> decode(String token) {
-        Key hmacKey1 = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
-        Jws<Claims> jws = Jwts.parser().setSigningKey(hmacKey1).parseClaimsJws(token);
+    public Jws<Claims> decode(String token, String secret) {
+        hmacKey = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS256.getJcaName());
+        Jws<Claims> jws = Jwts.parser().setSigningKey(hmacKey).parseClaimsJws(token);
         return jws;
     }
 }

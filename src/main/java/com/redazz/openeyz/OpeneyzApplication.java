@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Bean;
 public class OpeneyzApplication {
     @Autowired UserService us;
     @Autowired RoleService rs;
-
+    
     public static void main(String[] args) {
         SpringApplication.run(OpeneyzApplication.class, args);
     }
