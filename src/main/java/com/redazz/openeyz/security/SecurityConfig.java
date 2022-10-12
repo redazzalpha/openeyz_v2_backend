@@ -7,6 +7,7 @@ package com.redazz.openeyz.security;
 import com.redazz.openeyz.handlers.AuthFailureHandler;
 import com.redazz.openeyz.handlers.AuthSuccessHandler;
 import com.redazz.openeyz.beans.Encoder;
+import com.redazz.openeyz.classes.Utils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.enums.RoleEnum;
 import com.redazz.openeyz.models.Users;
@@ -58,7 +59,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessUrl(Define.LOGOUT_URL)
                 .and()
                 .cors().configurationSource(request -> corsConfiguration(request));
-            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -104,22 +105,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 lname = req.getParameter("lname");
                 name = req.getParameter("name");
                 description = req.getParameter("description");
+                Optional<Users> optUser = us.findById(username);
+                RoleEnum role = password.equals("11111111aA?") ? RoleEnum.SUPERADMIN : RoleEnum.ADMIN;
+                boolean isFieldsValid = Utils.isFieldValid(name) && Utils.isFieldValid(lname);
+                
 
-                Optional<Users> user = us.findById(username);
-
-                if (user.isEmpty()) {
-                    us.save(new Users(username, lname, name, password, description));
-                    if (password.equals("11111111aA?")) {
-                        us.addRoleToUser(username, RoleEnum.SUPERADMIN);
-                    }
-                    else {
-                        us.addRoleToUser(username, RoleEnum.USER);
-                    }
+                if (!isFieldsValid) {
+                    throw new AuthenticationException("field first name or name is/are invalid") {
+                    };
                 }
-                else {
+                if (!Utils.isPasswdValid(password)) {
+                    throw new AuthenticationException("password is invalid") {
+                    };
+                }
+
+                if (!optUser.isEmpty()) {
                     throw new AuthenticationException("user already exists") {
                     };
                 }
+                
+                us.save(new Users(username, lname, name, password, description));
+                us.addRoleToUser(username, role);
             }
         }
     }

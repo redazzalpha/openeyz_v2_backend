@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.Initiator;
+import com.redazz.openeyz.classes.Utils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.ActionHandler;
 import com.redazz.openeyz.models.Comment;
@@ -84,7 +85,7 @@ public class MainController {
     Initiator initiator;
     // is used to store temporary image filename
     private List<String> imageTemp = new ArrayList<>();
-    
+
     @Value("${jwt.secret}")
     private String secret;
 
@@ -200,6 +201,9 @@ public class MainController {
     }
     @GetMapping("publication/limit")
     public ResponseEntity<List<Object>> getAllPostLimit(@RequestParam(required = false) String authorId, @RequestParam(required = true) int limit, @RequestParam(required = false) String creation) {
+
+        Utils.isPasswdValid("");
+
         List<Object> list = new ArrayList<>();
         Post post;
         boolean userLike;
@@ -379,11 +383,6 @@ public class MainController {
         ns.readAllFromUser(initiator.getUsername());
         return new ResponseEntity<>("all notifications read successfully", HttpStatus.OK);
     }
-    @DeleteMapping("notif")
-    public ResponseEntity<String> deleteAllNotif() {
-        ns.deleteAllFromUser(initiator.getUsername());
-        return new ResponseEntity<>("all notifications has been deleted successfully", HttpStatus.OK);
-    }
     @PatchMapping("notif/one")
     public ResponseEntity<String> readNotifOne(@RequestParam(required = true) long notifId) {
 
@@ -402,6 +401,11 @@ public class MainController {
         catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+    @DeleteMapping("notif")
+    public ResponseEntity<String> deleteAllNotif() {
+        ns.deleteAllFromUser(initiator.getUsername());
+        return new ResponseEntity<>("all notifications has been deleted successfully", HttpStatus.OK);
     }
     @DeleteMapping("notif/one")
     public ResponseEntity<String> deleteNotifOne(@RequestParam(required = true) long notifId) {
@@ -504,18 +508,33 @@ public class MainController {
     @Transactional
     @PatchMapping("user/lname")
     public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname) {
-        us.updateLname(lname, initiator.getUsername());
-        return new ResponseEntity<>("Last name successfully modified", HttpStatus.OK);
+
+        String message = "Last first name successfully modified";
+        HttpStatus status = HttpStatus.OK;
+
+        if (Utils.isFieldValid(lname)) {
+            us.updateLname(lname, initiator.getUsername());
+        }
+        else {
+            message = "field first name is invalid";
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return new ResponseEntity<>(message, status);
     }
     @PatchMapping("user/name")
     public ResponseEntity<String> modifyName(@RequestParam(required = true, name = "data") String name) {
-        us.updateName(name, initiator.getUsername());
-        return new ResponseEntity<>("Name successfully modified", HttpStatus.OK);
-    }
-    @PatchMapping("user/username")
-    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response) {
-        us.updateUsername(username, initiator.getUsername());
-        return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
+
+        String message = "Last name successfully modified";
+        HttpStatus status = HttpStatus.OK;
+
+        if (Utils.isFieldValid(name)) {
+            us.updateLname(name, initiator.getUsername());
+        }
+        else {
+            message = "field name is invalid";
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return new ResponseEntity<>(message, status);
     }
     @PatchMapping("user/password")
     public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword) {
@@ -523,8 +542,10 @@ public class MainController {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         Optional<Users> user = us.findById(initiator.getUsername());
 
+        boolean isPasswdsValid = Utils.isPasswdValid(currentPassword) && Utils.isPasswdValid(newPassword);
+
         try {
-            if (user.isPresent()) {
+            if (user.isPresent() && isPasswdsValid) {
                 boolean match = encoder.matches(currentPassword, user.get().getPassword());
                 if (match) {
                     hash = encoder.encode(newPassword);
@@ -533,9 +554,13 @@ public class MainController {
                     status = HttpStatus.OK;
                 }
             }
-            else {
+            else if (user.isEmpty()) {
                 message = "User was not found!";
                 status = HttpStatus.NOT_FOUND;
+            }
+            else if (!isPasswdsValid) {
+                message = "password(s) is/are invalid";
+                status = HttpStatus.BAD_REQUEST;
             }
         }
         catch (Exception ex) {
@@ -549,11 +574,16 @@ public class MainController {
         us.updateDescription(description, initiator.getUsername());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
+    @PatchMapping("user/theme")
+    public ResponseEntity<String> modifyTheme(@RequestParam(required = true) boolean dark) {
+        us.updateDark(dark, initiator.getUsername());
+        return new ResponseEntity<>("Dark theme has been successfully set", HttpStatus.OK);
+    }
     // cannot send multipart file part using patch mapping cause doesn't work only work with post mapping
     @PostMapping("user/avatar")
     public ResponseEntity<String> modifyUserAvatar(@RequestParam(required = false) MultipartFile file) {
         HttpStatus status = HttpStatus.OK;
-        String message = "user avatar has been successfully removed";
+        String message;
 
         String avatarSrc = initiator.getAvatarSrc();
 
@@ -583,11 +613,6 @@ public class MainController {
         }
         return new ResponseEntity<>(message, status);
     }
-    @PatchMapping("user/theme")
-    public ResponseEntity<String> modifyTheme(@RequestParam(required = true) boolean dark) {
-        us.updateDark(dark, initiator.getUsername());
-        return new ResponseEntity<>("Dark theme has been successfully set", HttpStatus.OK);
-    }
     @DeleteMapping("user/delete")
     public void deleteAccount(HttpServletResponse response) throws IOException {
         jwt.setExpiration(0);
@@ -616,6 +641,13 @@ public class MainController {
     @GetMapping("logout")
     public ResponseEntity<String> logout() {
         return new ResponseEntity<>("logout successfull", HttpStatus.OK);
+    }
+
+    // experimental
+    @PatchMapping("user/username")
+    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response) {
+        us.updateUsername(username, initiator.getUsername());
+        return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }
 
     private boolean deleteAvatar(String avatarSrc) {
@@ -651,7 +683,7 @@ public class MainController {
                 replaceStr = "<img style='width: 100%; object-fit: cover;' src='" + Define.DOWNLOAD_IMAGE_URL + uuid + "." + extension + "' ";
                 indexOfReplaceSource = postSb.indexOf(replaceSource, fromIndex);
                 post = postSb.replace(indexOfReplaceSource, indexOfReplaceSource + replaceSource.length(), replaceStr).toString();
-                fromIndex = indexOfReplaceSource + replaceStr.length() -1;
+                fromIndex = indexOfReplaceSource + replaceStr.length() - 1;
                 filename = Define.IMAGES_DIRECTORY + "/" + uuid + "." + extension;
                 dest = new File(filename);
                 image.transferTo(dest);
