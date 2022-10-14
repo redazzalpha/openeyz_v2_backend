@@ -528,7 +528,7 @@ public class MainController {
         HttpStatus status = HttpStatus.OK;
 
         if (Utils.isFieldValid(name)) {
-            us.updateLname(name, initiator.getUsername());
+            us.updateName(name, initiator.getUsername());
         }
         else {
             message = "field name is invalid";
