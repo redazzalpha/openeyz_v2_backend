@@ -33,7 +33,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class Image implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected long id;
+    private long id;
     @NonNull
     @Column(nullable = false)
     private String filename;

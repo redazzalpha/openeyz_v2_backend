@@ -26,6 +26,7 @@ public abstract class PublicationComponent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected long id;
 
+    // relationships
     @NonNull
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)

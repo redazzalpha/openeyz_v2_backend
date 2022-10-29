@@ -34,9 +34,8 @@ public class Notif extends PublicationComponent implements Serializable {
     // properties
     @NonNull
     @Column(columnDefinition = "boolean default false", nullable = false)
-    Boolean read;
-    
-    
+    private Boolean read;
+
     public Notif(boolean read, Users owner, Comment comment, Users author) {
         this.read = read;
         this.owner = owner;
@@ -44,6 +43,7 @@ public class Notif extends PublicationComponent implements Serializable {
         this.author = author;
     }
 
+    //relationships
     @NonNull
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)

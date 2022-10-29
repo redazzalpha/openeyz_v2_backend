@@ -54,7 +54,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.formLogin()
                 .loginPage(Define.LOGIN_PAGE_URL)
                 .and()
-                .addFilter(new AuthHandler())
+                .addFilter(new AuthFilter())
                 .logout()
                 .logoutSuccessUrl(Define.LOGOUT_URL)
                 .and()
@@ -80,8 +80,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return cors;
     }
 
-    public class AuthHandler extends UsernamePasswordAuthenticationFilter {
-        public AuthHandler() throws Exception {
+    public class AuthFilter extends UsernamePasswordAuthenticationFilter {
+        public AuthFilter() throws Exception {
             setUsernameParameter("username");
             setPasswordParameter("password");
             setAuthenticationManager(authenticationManager());
