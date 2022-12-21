@@ -34,9 +34,9 @@ import javax.servlet.http.HttpServletResponse;
 public class RequestFilter implements Filter {
     private final JwTokenUtils jwt = new JwTokenUtils();
 
-    private UserService us;
-    private Initiator initiator;
-    private String secret;
+    private final UserService us;
+    private final Initiator initiator;
+    private final String secret;
 
     public RequestFilter(UserService us, Initiator initiator, String secret) {
         this.us = us;
