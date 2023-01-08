@@ -19,6 +19,8 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.MalformedJwtException;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -48,29 +50,38 @@ public class RequestFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
+        Pattern pattern = Pattern.compile("/gs-guide-websocket/*");
+        Matcher matcher = pattern.matcher(req.getRequestURI());
+        boolean isWebSocketMessage = matcher.find();
+
         boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_IMAGE_URL) && req.getMethod().equals("GET");
         boolean isAccessDownloadAvatar = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_AVATAR_URL) && req.getMethod().equals("GET");
         boolean isAccessRefresh = req.getRequestURI().equals(Define.REFRESH_URL);
         boolean isAccessLogout = req.getRequestURI().equals(Define.LOGOUT_URL);
-        boolean isCheckToken = !(isAccessDownloadImg || isAccessDownloadAvatar || isAccessRefresh || isAccessLogout);
+
+        boolean isCheckToken = !(isAccessDownloadImg || isAccessDownloadAvatar || isAccessRefresh || isAccessLogout || isWebSocketMessage);
         boolean isSupervisorRoute = req.getRequestURI().equals(Define.ADMIN_URL);
 
         try {
+
             if (isCheckToken) {
-                if (req.getHeader("Authorization") == null) 
+                if (req.getHeader("Authorization") == null) {
                     throw new DataNotFoundException("authorization header is not present");
+                }
 
                 String token = req.getHeader("Authorization").split("Bearer ")[1];
 
-                if (token == null) 
+                if (token == null) {
                     throw new DataNotFoundException("bearer token is not present");
+                }
 
                 Jws<Claims> jws = jwt.decode(token, secret);
                 String usernameToken = jws.getBody().get("username").toString();
                 Optional<Users> optUser = us.findById(usernameToken);
 
-                if (optUser.isEmpty())
+                if (optUser.isEmpty()) {
                     throw new NoUserFoundException("user value is not present");
+                }
 
                 Users currentUser = optUser.get();
                 initiator.init(currentUser);
@@ -78,24 +89,34 @@ public class RequestFilter implements Filter {
                 boolean isSupervisor = roleToken.equals(RoleEnum.SUPERADMIN.toString()) || roleToken.equals(RoleEnum.ADMIN.toString());
                 boolean isBanned = !initiator.getState();
 
-                if(isBanned)
+                if (isBanned) {
                     throw new ForbiddenException("your account has been disabled");
-                
-                if (isSupervisorRoute && !isSupervisor) 
+                }
+
+                if (isSupervisorRoute && !isSupervisor) {
                     throw new ForbiddenException("user is not authorized to access");
+                }
             }
             chain.doFilter(request, response);
         }
         catch (DataNotFoundException | ForbiddenException | NoUserFoundException | ExpiredJwtException | MalformedJwtException | IOException ex) {
-            String exceptionClassName = ex.getClass().getSimpleName(); 
-            switch(exceptionClassName) {
-                case "DataNotFoundException" -> res.sendError(400, ex.getMessage());
-                case "ExpiredJwtException" -> res.sendError(401, ex.getMessage());
-                case "NoUserFoundException" -> res.sendError(401, ex.getMessage());
-                case "MalformedJwtException" -> res.sendError(401, ex.getMessage());
-                case "IOException" -> res.sendError(401, ex.getMessage());
-                case "ForbiddenException" -> res.sendError(403, ex.getMessage());
-                default -> res.sendError(500, ex.getMessage());
+            String exceptionClassName = ex.getClass().getSimpleName();
+            switch (exceptionClassName) {
+
+                case "DataNotFoundException" ->
+                    res.sendError(400, ex.getMessage());
+                case "ExpiredJwtException" ->
+                    res.sendError(401, ex.getMessage());
+                case "NoUserFoundException" ->
+                    res.sendError(401, ex.getMessage());
+                case "MalformedJwtException" ->
+                    res.sendError(401, ex.getMessage());
+                case "IOException" ->
+                    res.sendError(401, ex.getMessage());
+                case "ForbiddenException" ->
+                    res.sendError(403, ex.getMessage());
+                default ->
+                    res.sendError(500, ex.getMessage());
             }
         }
     }
