@@ -4,6 +4,11 @@
  */
 package com.redazz.openeyz.Socket;
 
+import com.redazz.openeyz.beans.Initiator;
+import com.redazz.openeyz.beans.JwTokenUtils;
+import com.redazz.openeyz.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -20,9 +25,20 @@ import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 @Configuration
 @EnableWebSocketMessageBroker
 public class SocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    @Autowired
+    UserService us;
+    @Autowired
+    Initiator initiator;
+    @Autowired
+    JwTokenUtils jwt;
+
+    @Value("${jwt.secret}")
+    private String secret;
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-//        WebSocketMessageBrokerConfigurer.super.configureMessageBroker(registry);
+        WebSocketMessageBrokerConfigurer.super.configureMessageBroker(registry);
 //        registry.enableSimpleBroker("/client");
 //        registry.setApplicationDestinationPrefixes("/api");
 
@@ -32,29 +48,22 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
     }
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-//        WebSocketMessageBrokerConfigurer.super.registerStompEndpoints(registry);
+        WebSocketMessageBrokerConfigurer.super.registerStompEndpoints(registry);
 //        registry.addEndpoint("/websocket").withSockJS();
 
         registry.addEndpoint("/gs-guide-websocket").setAllowedOriginPatterns("*").withSockJS();
-//        registry.addEndpoint("/gs-guide-websocket").setAllowedOriginPatterns(Define.CLIENT_DOMAIN).withSockJS().setSessionCookieNeeded(false);
-        // Handle exceptions in interceptors and Spring library itself.
-        // Will terminate a connection and send ERROR frame to the client.
-        registry.setErrorHandler(new StompSubProtocolErrorHandler() {
-            
-        });
-
-
+////        registry.addEndpoint("/gs-guide-websocket").setAllowedOriginPatterns(Define.CLIENT_DOMAIN).withSockJS().setSessionCookieNeeded(false);
+//        // Handle exceptions in interceptors and Spring library itself.
+//        // Will terminate a connection and send ERROR frame to the client.
+//        registry.setErrorHandler(new StompSubProtocolErrorHandler() {
+//
+//        });
 
     }
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         WebSocketMessageBrokerConfigurer.super.configureClientInboundChannel(registration);
-        registration.interceptors(new SocketInterceptor());
-    }
-
-    @Bean
-    public SocketInterceptor rmeSessionChannelInterceptor() {
-        return new SocketInterceptor();
+        registration.interceptors(new SocketInterceptor(us, initiator, jwt, secret));
     }
 
 }

@@ -41,7 +41,6 @@ public class RequestFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletResponse res = (HttpServletResponse) response;
 
-
         try {
             Utils.checkToken(request, initiator, us, jwt, secret);
             chain.doFilter(request, response);
