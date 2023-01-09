@@ -4,8 +4,22 @@
  */
 package com.redazz.openeyz.classes;
 
+import com.redazz.openeyz.Exceptions.DataNotFoundException;
+import com.redazz.openeyz.Exceptions.ForbiddenException;
+import com.redazz.openeyz.Exceptions.NoUserFoundException;
+import com.redazz.openeyz.beans.Initiator;
+import com.redazz.openeyz.beans.JwTokenUtils;
+import com.redazz.openeyz.defines.Define;
+import com.redazz.openeyz.enums.RoleEnum;
+import com.redazz.openeyz.models.Users;
+import com.redazz.openeyz.services.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  *
@@ -39,5 +53,58 @@ public class Utils {
                 && isSpecialChar
                 && !isSpace
                 && isMin8;
+    }
+
+    public static void checkToken(ServletRequest request, Initiator initiator, UserService us, JwTokenUtils jwt, String secret)
+            throws DataNotFoundException, NoUserFoundException, ForbiddenException {
+
+        HttpServletRequest req = (HttpServletRequest) request;
+
+        Pattern pattern = Pattern.compile("/gs-guide-websocket/*");
+        Matcher matcher = pattern.matcher(req.getRequestURI());
+        boolean isWebSocketMessage = matcher.find();
+
+        boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_IMAGE_URL) && req.getMethod().equals("GET");
+        boolean isAccessDownloadAvatar = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_AVATAR_URL) && req.getMethod().equals("GET");
+        boolean isAccessRefresh = req.getRequestURI().equals(Define.REFRESH_URL);
+        boolean isAccessLogout = req.getRequestURI().equals(Define.LOGOUT_URL);
+
+        boolean isCheckToken = !(isAccessDownloadImg || isAccessDownloadAvatar || isAccessRefresh || isAccessLogout || isWebSocketMessage);
+        boolean isSupervisorRoute = req.getRequestURI().equals(Define.ADMIN_URL);
+
+        if (isCheckToken) {
+            if (req.getHeader("Authorization") == null) {
+                throw new DataNotFoundException("authorization header is not present");
+            }
+
+            String token = req.getHeader("Authorization").split("Bearer ")[1];
+
+            if (token == null) {
+                throw new DataNotFoundException("bearer token is not present");
+            }
+
+            Jws<Claims> jws = jwt.decode(token, secret);
+            String usernameToken = jws.getBody().get("username").toString();
+            Optional<Users> optUser = us.findById(usernameToken);
+
+            if (optUser.isEmpty()) {
+                throw new NoUserFoundException("user value is not present");
+            }
+
+            Users currentUser = optUser.get();
+            initiator.init(currentUser);
+            String roleToken = jws.getBody().get("role").toString();
+            boolean isSupervisor = roleToken.equals(RoleEnum.SUPERADMIN.toString()) || roleToken.equals(RoleEnum.ADMIN.toString());
+            boolean isBanned = !initiator.getState();
+
+            if (isBanned) {
+                throw new ForbiddenException("your account has been disabled");
+            }
+
+            if (isSupervisorRoute && !isSupervisor) {
+                throw new ForbiddenException("user is not authorized to access");
+            }
+        }
+
     }
 }
