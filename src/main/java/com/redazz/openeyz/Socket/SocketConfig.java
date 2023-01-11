@@ -6,6 +6,7 @@ package com.redazz.openeyz.Socket;
 
 import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.beans.JwTokenUtils;
+import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,19 +40,14 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         WebSocketMessageBrokerConfigurer.super.configureMessageBroker(registry);
-//        registry.enableSimpleBroker("/client");
-//        registry.setApplicationDestinationPrefixes("/api");
-
-        registry.enableSimpleBroker("/topic");
-        registry.setApplicationDestinationPrefixes("/app");
+        registry.enableSimpleBroker("/signal-update");
+        registry.setApplicationDestinationPrefixes("/api");
 
     }
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         WebSocketMessageBrokerConfigurer.super.registerStompEndpoints(registry);
-//        registry.addEndpoint("/websocket").withSockJS();
-
-        registry.addEndpoint("/gs-guide-websocket").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint(Define.SOCKET_END_POINT_URL).setAllowedOriginPatterns("*").withSockJS().setSessionCookieNeeded(false);
 ////        registry.addEndpoint("/gs-guide-websocket").setAllowedOriginPatterns(Define.CLIENT_DOMAIN).withSockJS().setSessionCookieNeeded(false);
 //        // Handle exceptions in interceptors and Spring library itself.
 //        // Will terminate a connection and send ERROR frame to the client.

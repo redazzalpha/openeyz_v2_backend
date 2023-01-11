@@ -9,6 +9,9 @@ package com.redazz.openeyz.defines;
  * @author kyzer
  */ 
 public class Define {
+    
+    // urls
+    
     public static final String ROOT_URL = "/api";   
     public static final String ADMIN_URL = "/admin";
     
@@ -36,12 +39,17 @@ public class Define {
 
     public static final String ALLOWED_ORIGIN_URL = CLIENT_DOMAIN;
     public static final String LOGIN_PAGE_URL = CLIENT_DOMAIN +  "/access";
+    
+    public static final String SOCKET_END_POINT_URL = ROOT_URL + "/ws";
 
+    // query strings
     
     public static final String AUTH_USER_QUERY = "select username, password, state from users where username = ?";
     public static final String AUTH_AUTHORITIES_QUERY = "select username, role from user_roles where username = ?";
     public static final String AUTH_ROLE_PREFIX = "ROLE_";
 
+    // messages
+    
     public static final String MESSAGE_SUCCESS_AUTH = "Auth success";
     public static final String MESSAGE_SUCCESS_POST = "Publication successfully posted";
 
@@ -53,6 +61,8 @@ public class Define {
     public static final String MESSAGE_ERROR_EMPTY_POST = "post is empty";
     public static final String MESSAGE_ERROR_EMPTY_COMMENT = "comment is empty";
     public static final String MESSAGE_ERROR_UNAVAILABLE_RESOURCES = "sources are unavailable";
+    
+    // others
     
     public static final int REGISTER_NUM_ARG = 4;
 

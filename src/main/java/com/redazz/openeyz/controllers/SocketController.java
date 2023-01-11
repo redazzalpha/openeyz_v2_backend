@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class SocketController {
-    
+
 //    @MessageMapping("/socket")
 //    @SendTo("/client")
-    @MessageMapping("/hello")
-    @SendTo("/topic/greetings")
+    @MessageMapping("/signal/update")
+    @SendTo("/signal-update")
     public OutputMessage messageHandler(InputMessage message) throws Exception {
 //        return new OutputMessage("Salut los ami de gauche");
         Thread.sleep(1000); // simulated delay
@@ -28,5 +28,5 @@ public class SocketController {
 //        return new OutputMessage("Hello, " + HtmlUtils.htmlEscape(message.getContent()) + "!");
 
     }
-    
+
 }
