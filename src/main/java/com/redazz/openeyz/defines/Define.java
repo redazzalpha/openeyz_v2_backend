@@ -40,7 +40,8 @@ public class Define {
     public static final String ALLOWED_ORIGIN_URL = CLIENT_DOMAIN;
     public static final String LOGIN_PAGE_URL = CLIENT_DOMAIN +  "/access";
     
-    public static final String SOCKET_END_POINT_URL = ROOT_URL + "/ws";
+    public static final String WS_END_POINT_URL = ROOT_URL + "/ws";
+    public static final String WS_SUBSCRIBE_URL = "/signal-update";
 
     // query strings
     

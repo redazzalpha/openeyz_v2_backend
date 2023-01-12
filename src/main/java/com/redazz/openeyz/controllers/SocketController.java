@@ -6,6 +6,7 @@ package com.redazz.openeyz.controllers;
 
 import com.redazz.openeyz.classes.InputMessage;
 import com.redazz.openeyz.classes.OutputMessage;
+import com.redazz.openeyz.defines.Define;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,15 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SocketController {
 
-//    @MessageMapping("/socket")
-//    @SendTo("/client")
     @MessageMapping("/signal/update")
-    @SendTo("/signal-update")
+    @SendTo(Define.WS_SUBSCRIBE_URL)
     public OutputMessage messageHandler(InputMessage message) throws Exception {
-//        return new OutputMessage("Salut los ami de gauche");
         Thread.sleep(1000); // simulated delay
-        return new OutputMessage("Hello, zizoupop comment va tu ?!");
-//        return new OutputMessage("Hello, " + HtmlUtils.htmlEscape(message.getContent()) + "!");
+        return new OutputMessage(message.getContent());
 
     }
 

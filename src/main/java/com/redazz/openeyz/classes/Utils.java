@@ -60,7 +60,7 @@ public class Utils {
 
         HttpServletRequest req = (HttpServletRequest) request;
 
-        Pattern pattern = Pattern.compile(Define.SOCKET_END_POINT_URL);
+        Pattern pattern = Pattern.compile(Define.WS_END_POINT_URL);
         Matcher matcher = pattern.matcher(req.getRequestURI());
         boolean isWebSocketMessage = matcher.find();
 
@@ -105,6 +105,5 @@ public class Utils {
                 throw new ForbiddenException("user is not authorized to access");
             }
         }
-
     }
 }

@@ -10,14 +10,12 @@ import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 
 /**
  *
@@ -40,14 +38,15 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         WebSocketMessageBrokerConfigurer.super.configureMessageBroker(registry);
-        registry.enableSimpleBroker("/signal-update");
-        registry.setApplicationDestinationPrefixes("/api");
+        registry.enableSimpleBroker(Define.WS_SUBSCRIBE_URL);
+        registry.setApplicationDestinationPrefixes(Define.ROOT_URL);
 
     }
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         WebSocketMessageBrokerConfigurer.super.registerStompEndpoints(registry);
-        registry.addEndpoint(Define.SOCKET_END_POINT_URL).setAllowedOriginPatterns("*").withSockJS().setSessionCookieNeeded(false);
+        registry.addEndpoint(Define.WS_END_POINT_URL).setAllowedOriginPatterns("*");
+        registry.addEndpoint(Define.WS_END_POINT_URL).setAllowedOriginPatterns("*").withSockJS().setSessionCookieNeeded(false);
 ////        registry.addEndpoint("/gs-guide-websocket").setAllowedOriginPatterns(Define.CLIENT_DOMAIN).withSockJS().setSessionCookieNeeded(false);
 //        // Handle exceptions in interceptors and Spring library itself.
 //        // Will terminate a connection and send ERROR frame to the client.
