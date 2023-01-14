@@ -12,16 +12,17 @@ public class Define {
     
     // urls
     
-    public static final String ROOT_URL = "/api";   
+    public static final String API_URL = "/api";   
     public static final String ADMIN_URL = "/admin";
+    public static final String WEBSOCKET_URL = "/ws";
     
-    public static final String ACCESS_URL = ROOT_URL + "/access";
-    public static final String REFRESH_URL = ROOT_URL + "/refresh";
-    public static final String AUTH_FAILURE_URL = ROOT_URL + "/auth-failure";
-    public static final String REGISTER_FAILURE_URL = ROOT_URL + "/register-failure";
-    public static final String LOCAL_IMAGE_URL = ROOT_URL + "/img";
-    public static final String LOCAL_AVATAR_URL = ROOT_URL + "/avatar";
-    public static final String LOGOUT_URL = ROOT_URL + "/logout";
+    public static final String ACCESS_URL = API_URL + "/access";
+    public static final String REFRESH_URL = API_URL + "/refresh";
+    public static final String AUTH_FAILURE_URL = API_URL + "/auth-failure";
+    public static final String REGISTER_FAILURE_URL = API_URL + "/register-failure";
+    public static final String LOCAL_IMAGE_URL = API_URL + "/img";
+    public static final String LOCAL_AVATAR_URL = API_URL + "/avatar";
+    public static final String LOGOUT_URL = API_URL + "/logout";
     
     
     public static final String ASSETS_DIRECTORY = "assets";
@@ -34,14 +35,14 @@ public class Define {
     public static final String SERVER_DOMAIN = "http://localhost:8081";
     public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
 
-    public static final String DOWNLOAD_IMAGE_URL = SERVER_DOMAIN + ROOT_URL + "/img?img=";
-    public static final String DOWNLOAD_AVATAR_URL = SERVER_DOMAIN + ROOT_URL + "/avatar?img=";
+    public static final String DOWNLOAD_IMAGE_URL = SERVER_DOMAIN + API_URL + "/img?img=";
+    public static final String DOWNLOAD_AVATAR_URL = SERVER_DOMAIN + API_URL + "/avatar?img=";
 
     public static final String ALLOWED_ORIGIN_URL = CLIENT_DOMAIN;
     public static final String LOGIN_PAGE_URL = CLIENT_DOMAIN +  "/access";
     
-    public static final String WS_END_POINT_URL = ROOT_URL + "/ws";
-    public static final String WS_SUBSCRIBE_URL = "/signal-update";
+    public static final String WS_END_POINT_URL = WEBSOCKET_URL;
+    public static final String WS_SUBSCRIBE_URL = WEBSOCKET_URL + "/signal";
 
     // query strings
     
