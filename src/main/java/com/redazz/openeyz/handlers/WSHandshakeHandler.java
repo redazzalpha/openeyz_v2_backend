@@ -16,9 +16,12 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
  * @author kyzer
  */
 public class WSHandshakeHandler extends DefaultHandshakeHandler {
+    
     @Override
     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
         // generate user name by UUID
-        return () -> UUID.randomUUID().toString();
+        String uuid = UUID.randomUUID().toString();
+//        return () -> "pipi";
+        return () -> uuid;
     }
 }

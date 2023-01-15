@@ -12,12 +12,17 @@ import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.core.userdetails.User;
 
 /**
  *
@@ -38,11 +43,18 @@ public class SocketInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
+
         try {
             StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-            String headervalue = accessor.getNativeHeader("Authorization").get(0);
-            String token = headervalue.split("Bearer ")[1];
+            String authHeaderValue = accessor.getNativeHeader("Authorization").get(0);
+            String token = authHeaderValue.split("Bearer ")[1];
 
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                System.out.println("------------------------------------------------------------------ accessor.getUser().getName(): " + accessor.getUser().getName());
+            }
+
+//            String wsUsername = accessor.getNativeHeader("simpUser").get(0);
+//            System.out.println("------------------------------------------------------------------ wsUsername: " + wsUsername );
             Jws<Claims> jws = jwt.decode(token, secret);
             String usernameToken = jws.getBody().get("username").toString();
             Optional<Users> optUser = us.findById(usernameToken);
@@ -58,7 +70,7 @@ public class SocketInterceptor implements ChannelInterceptor {
             if (isBanned) {
                 throw new ForbiddenException("your account has been disabled");
             }
-            
+
             return ChannelInterceptor.super.preSend(message, channel);
         }
         catch (ForbiddenException | NoUserFoundException | NullPointerException e) {

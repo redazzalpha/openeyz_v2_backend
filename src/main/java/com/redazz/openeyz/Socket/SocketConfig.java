@@ -7,7 +7,6 @@ package com.redazz.openeyz.Socket;
 import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.defines.Define;
-import static com.redazz.openeyz.defines.Define.WEBSOCKET_URL;
 import com.redazz.openeyz.handlers.WSHandshakeHandler;
 import com.redazz.openeyz.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +41,7 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
         WebSocketMessageBrokerConfigurer.super.configureMessageBroker(registry);
         registry.enableSimpleBroker(Define.WEBSOCKET_URL);
         registry.setApplicationDestinationPrefixes(Define.WEBSOCKET_URL);
+        registry.setUserDestinationPrefix("/users");
 
     }
     @Override
