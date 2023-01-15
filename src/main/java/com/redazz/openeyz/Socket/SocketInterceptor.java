@@ -8,21 +8,18 @@ import com.redazz.openeyz.Exceptions.ForbiddenException;
 import com.redazz.openeyz.Exceptions.NoUserFoundException;
 import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.beans.JwTokenUtils;
+import com.redazz.openeyz.beans.WsUserMap;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
-import java.util.ArrayList;
-import java.util.Map;
 import java.util.Optional;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.security.core.userdetails.User;
 
 /**
  *
@@ -33,12 +30,14 @@ public class SocketInterceptor implements ChannelInterceptor {
     private final Initiator initiator;
     private final JwTokenUtils jwt;
     private final String secret;
+    private final WsUserMap wsUserMap;
 
-    public SocketInterceptor(UserService us, Initiator initiator, JwTokenUtils jwt, String secret) {
+    public SocketInterceptor(UserService us, Initiator initiator, JwTokenUtils jwt, String secret, WsUserMap wsUserMap) {
         this.us = us;
         this.initiator = initiator;
         this.jwt = jwt;
         this.secret = secret;
+        this.wsUserMap = wsUserMap;
     }
 
     @Override
@@ -49,16 +48,10 @@ public class SocketInterceptor implements ChannelInterceptor {
             String authHeaderValue = accessor.getNativeHeader("Authorization").get(0);
             String token = authHeaderValue.split("Bearer ")[1];
 
-            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                System.out.println("------------------------------------------------------------------ accessor.getUser().getName(): " + accessor.getUser().getName());
-            }
-
-//            String wsUsername = accessor.getNativeHeader("simpUser").get(0);
-//            System.out.println("------------------------------------------------------------------ wsUsername: " + wsUsername );
             Jws<Claims> jws = jwt.decode(token, secret);
             String usernameToken = jws.getBody().get("username").toString();
             Optional<Users> optUser = us.findById(usernameToken);
-
+            
             if (optUser.isEmpty()) {
                 throw new NoUserFoundException("user value is not present");
             }
@@ -71,6 +64,11 @@ public class SocketInterceptor implements ChannelInterceptor {
                 throw new ForbiddenException("your account has been disabled");
             }
 
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                wsUserMap.addUser(currentUser.getUsername(), accessor.getUser().getName());
+                wsUserMap.showList();
+            }
+            
             return ChannelInterceptor.super.preSend(message, channel);
         }
         catch (ForbiddenException | NoUserFoundException | NullPointerException e) {

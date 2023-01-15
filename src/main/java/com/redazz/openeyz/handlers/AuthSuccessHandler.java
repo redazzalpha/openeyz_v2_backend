@@ -35,8 +35,7 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         String username = request.getParameter("username");
-        Optional<Users> user = us.findById(username);
-
+        Optional<Users> user = us.findById(username);        
         if (user.isPresent()) {
             jwt.setExpiration(1);            
             String token = jwt.encode(username, secret);

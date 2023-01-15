@@ -67,9 +67,10 @@ public class Utils {
         boolean isAccessDownloadImg = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_IMAGE_URL) && req.getMethod().equals("GET");
         boolean isAccessDownloadAvatar = req.getRequestURI().split("\\?")[0].equals(Define.LOCAL_AVATAR_URL) && req.getMethod().equals("GET");
         boolean isAccessRefresh = req.getRequestURI().equals(Define.REFRESH_URL);
-        boolean isAccessLogout = req.getRequestURI().equals(Define.LOGOUT_URL);
+//        boolean isAccessLogout = req.getRequestURI().equals(Define.LOGOUT_URL);
 
-        boolean isCheckToken = !(isAccessDownloadImg || isAccessDownloadAvatar || isAccessRefresh || isAccessLogout || isWebSocketMessage);
+        boolean isCheckToken = !(isAccessDownloadImg || isAccessDownloadAvatar || isAccessRefresh || isWebSocketMessage);
+//        boolean isCheckToken = !(isAccessDownloadImg || isAccessDownloadAvatar || isAccessRefresh || isAccessLogout || isWebSocketMessage);
         boolean isSupervisorRoute = req.getRequestURI().equals(Define.ADMIN_URL);
 
         if (isCheckToken) {

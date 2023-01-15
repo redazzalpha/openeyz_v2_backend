@@ -6,6 +6,7 @@ package com.redazz.openeyz.Socket;
 
 import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.beans.JwTokenUtils;
+import com.redazz.openeyz.beans.WsUserMap;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.WSHandshakeHandler;
 import com.redazz.openeyz.services.UserService;
@@ -32,6 +33,8 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
     Initiator initiator;
     @Autowired
     JwTokenUtils jwt;
+    @Autowired
+    WsUserMap wsUserMap;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -53,7 +56,7 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         WebSocketMessageBrokerConfigurer.super.configureClientInboundChannel(registration);
-        registration.interceptors(new SocketInterceptor(us, initiator, jwt, secret));
+        registration.interceptors(new SocketInterceptor(us, initiator, jwt, secret, wsUserMap));
     }
 
 }

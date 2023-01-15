@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redazz.openeyz.beans.Encoder;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.Initiator;
+import com.redazz.openeyz.beans.WsUserMap;
 import com.redazz.openeyz.classes.Utils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.ActionHandler;
@@ -46,6 +47,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -83,8 +85,13 @@ public class MainController {
     ActionHandler actionHandler;
     @Autowired
     Initiator initiator;
+    @Autowired
+    WsUserMap wsUserMap;
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
+
     // is used to store temporary image filename
-    private List<String> imageTemp = new ArrayList<>();
+    private final List<String> imageTemp = new ArrayList<>();
 
     @Value("${jwt.secret}")
     private String secret;
@@ -262,6 +269,8 @@ public class MainController {
 
                     // if no error delete filenames in imageTemp
                     imageTemp.clear();
+
+                    wsSendSignalToAll("POST");
                 }
                 else {
                     message = Define.MESSAGE_ERROR_EMPTY_POST;
@@ -284,6 +293,7 @@ public class MainController {
             }
             imageTemp.clear();
         }
+
         return new ResponseEntity<>(message, status);
     }
     @DeleteMapping("publication")
@@ -299,6 +309,7 @@ public class MainController {
                     }
 
                     ps.deleteById(idPost);
+                    wsSendSignalToAll("POST");
                     return null;
                 });
             }
@@ -340,6 +351,8 @@ public class MainController {
                 if (!author.getUsername().equals(owner.getUsername())) {
                     Notif notif = new Notif(false, owner, com, author);
                     ns.save(notif);
+
+                    wsSendSignalTo("NOTIF", owner.getUsername());
                 }
             }
             else {
@@ -640,6 +653,9 @@ public class MainController {
 
     @GetMapping("logout")
     public ResponseEntity<String> logout() {
+        // TODO: FOUND A WAY TO GET WS USERNAME TO JUST REMOVE ONE USING wsUserMap.remove(String key, String value)
+        wsUserMap.removeAll(initiator.getUsername());
+        wsUserMap.showList();
         return new ResponseEntity<>("logout successfull", HttpStatus.OK);
     }
 
@@ -691,5 +707,19 @@ public class MainController {
             }
         }
         return post;
+    }
+    // websocket server send signal to all connected users
+    private void wsSendSignalToAll(String signal) {
+        for (Map.Entry entry : wsUserMap.getMap().entries()) {
+            simpMessagingTemplate.convertAndSendToUser(entry.getValue().toString(), Define.WEBSOCKET_URL + "/signal", signal);
+        }
+    }
+    // websocket server send signal to specific user
+    private void wsSendSignalTo(String signal, String username) {
+        if (wsUserMap.contains(username)) {
+            for (String name : wsUserMap.getValues(username)) {
+                simpMessagingTemplate.convertAndSendToUser(name, Define.WEBSOCKET_URL + "/signal", signal);
+            }
+        }
     }
 }
