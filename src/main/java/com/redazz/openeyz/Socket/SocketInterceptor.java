@@ -66,7 +66,6 @@ public class SocketInterceptor implements ChannelInterceptor {
 
             if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                 wsUserMap.addUser(currentUser.getUsername(), accessor.getUser().getName());
-                wsUserMap.showList();
             }
             
             return ChannelInterceptor.super.preSend(message, channel);

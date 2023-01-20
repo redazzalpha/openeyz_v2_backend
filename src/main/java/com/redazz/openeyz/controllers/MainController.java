@@ -95,7 +95,7 @@ public class MainController {
 
     @Value("${jwt.secret}")
     private String secret;
-
+    
     @PostMapping("auth-failure")
     public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
 
@@ -655,7 +655,6 @@ public class MainController {
     public ResponseEntity<String> logout() {
         // TODO: FOUND A WAY TO GET WS USERNAME TO JUST REMOVE ONE USING wsUserMap.remove(String key, String value)
         wsUserMap.removeAll(initiator.getUsername());
-        wsUserMap.showList();
         return new ResponseEntity<>("logout successfull", HttpStatus.OK);
     }
 

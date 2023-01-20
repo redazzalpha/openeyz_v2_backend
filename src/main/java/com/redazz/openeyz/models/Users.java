@@ -14,6 +14,7 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,14 +39,12 @@ public class Users implements Serializable {
     private String username;
 
     @NonNull
-    @Length(min = 2, max = 20)
-    @Column(nullable = false)
-    private String lname;
+    @Lob
+    private byte[] lname;
 
     @NonNull
-    @Length(min = 2, max = 20)
-    @Column(nullable = false)
-    private String name;
+    @Lob
+    private byte[] name;
 
     @NonNull
     @Length(min = 8)
@@ -74,7 +73,7 @@ public class Users implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "roleName")
     )
     private List<Role> roles = new ArrayList<>();
-    
+
     public boolean getDark() {
         return dark;
     }

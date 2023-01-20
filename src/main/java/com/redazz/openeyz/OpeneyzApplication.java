@@ -1,5 +1,6 @@
 package com.redazz.openeyz;
 
+import com.redazz.openeyz.beans.Encryptor;
 import com.redazz.openeyz.enums.RoleEnum;
 import com.redazz.openeyz.models.Role;
 import com.redazz.openeyz.models.Users;
@@ -13,18 +14,29 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class OpeneyzApplication {
-    @Autowired UserService us;
-    @Autowired RoleService rs;
-    
+    @Autowired
+    UserService us;
+    @Autowired
+    RoleService rs;
+    @Autowired Encryptor encryptor;
+
     public static void main(String[] args) {
         SpringApplication.run(OpeneyzApplication.class, args);
     }
     @Bean
     public CommandLineRunner initCfg() {
-        return args -> {
-            Users suadmin = new Users("suadmin@gmail.com", "SuperAdmin", "SuperAdmin", "1234abdcL?", "Je suis super administrateur");
-            Users admin = new Users("admin@gmail.com", "Admin", "Admin", "1234abdcL?", "Je suis administrateur");
-            Users user = new Users("user@gmail.com", "User", "User", "1234abdcL?", "je suis utilisateur");
+        return (String[] args) -> {
+            Users suadmin = new Users("suadmin@gmail.com","SuperAdmin".getBytes("utf-8"), "SuperAdmin".getBytes("utf-8"), "1234abdcL?", "Je suis super administrateur");
+            Users admin = new Users("admin@gmail.com", "Admin".getBytes("utf-8"), "Admin".getBytes("utf-8"), "1234abdcL?", "Je suis administrateur");
+            Users user = new Users("user@gmail.com", "User".getBytes("utf-8"), "User".getBytes("utf-8"), "1234abdcL?", "je suis utilisateur");
+//            Users suadmin = new Users("suadmin@gmail.com", "SuperAdmin", "SuperAdmin", "1234abdcL?", "Je suis super administrateur");
+//            Users admin = new Users("admin@gmail.com", "Admin", "Admin", "1234abdcL?", "Je suis administrateur");
+//            Users user = new Users("user@gmail.com", "User", "User", "1234abdcL?", "je suis utilisateur");
+
+
+            String v = "zombiff";
+            suadmin.setLname(encryptor.encrypt(v.getBytes("utf-8")));
+            
             us.save(suadmin);
             us.save(admin);
             us.save(user);
@@ -37,8 +49,8 @@ public class OpeneyzApplication {
             rs.save(userRole);
 
             us.addRoleToUser(suadmin.getUsername(), suadminRole.getRoleName());
-            us.addRoleToUser(admin.getUsername(),   adminRole.getRoleName());
-            us.addRoleToUser(user.getUsername(), userRole.getRoleName());
+            us.addRoleToUser(admin.getUsername(), adminRole.getRoleName());
+            us.addRoleToUser(user.getUsername(), userRole.getRoleName());            
         };
     }
 }

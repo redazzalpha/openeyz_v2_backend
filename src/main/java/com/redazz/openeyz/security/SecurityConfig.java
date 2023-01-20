@@ -7,13 +7,17 @@ package com.redazz.openeyz.security;
 import com.redazz.openeyz.handlers.AuthFailureHandler;
 import com.redazz.openeyz.handlers.AuthSuccessHandler;
 import com.redazz.openeyz.beans.Encoder;
+import com.redazz.openeyz.beans.Encryptor;
 import com.redazz.openeyz.classes.Utils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.enums.RoleEnum;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -47,6 +51,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     AuthSuccessHandler authSuccessHandler;
     @Autowired
     AuthFailureHandler authFailureHandler;
+    @Autowired
+    Encryptor encryptor;
+
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -91,11 +98,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
         @Override
         public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-            register(request);
+            try {
+                register(request);
+            }
+            catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(SecurityConfig.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            }
             return super.attemptAuthentication(request, response);
         }
 
-        private void register(HttpServletRequest req) {
+        private void register(HttpServletRequest req) throws UnsupportedEncodingException {
             boolean isResgisterAction = req.getParameterMap().size() > Define.REGISTER_NUM_ARG;
 
             if (isResgisterAction) {
@@ -124,7 +137,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     };
                 }
                 
-                us.save(new Users(username, lname, name, password, description));
+                us.save(new Users(username, encryptor.encrypt(lname.getBytes("utf-8")), encryptor.encrypt(name.getBytes("utf-8")), password, description));
+//                us.save(new Users(username, lname, name, password, description));
                 us.addRoleToUser(username, role);
             }
         }

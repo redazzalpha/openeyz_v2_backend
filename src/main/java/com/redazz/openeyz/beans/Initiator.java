@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
 @Data
 public class Initiator {
     private String username;
-    private String lname;
-    private String name;
+    private byte[] lname;
+    private byte[] name;
     private String password;
     private String description;
     private String avatarSrc;
