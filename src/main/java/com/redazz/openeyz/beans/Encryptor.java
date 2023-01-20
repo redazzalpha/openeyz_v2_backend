@@ -5,12 +5,14 @@
 package com.redazz.openeyz.beans;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import javax.xml.bind.DatatypeConverter;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,12 +30,32 @@ public class Encryptor {
     public Encryptor(@Value("${enc.secret}") String encKey, @Value("${salt.secret}") String saltKey) throws UnsupportedEncodingException {
         encryptor = Encryptors.stronger(encKey, DatatypeConverter.printHexBinary(saltKey.getBytes("UTF-8")));
     }
-    
+
     // methods
-    public byte[] encrypt(byte[] input) {
-        return encryptor.encrypt(input);
+    /**
+     * FUNCTION ADD SALT TO INPUT BYTE ARRAY AND ENCRYPT
+     * @param inputByteArray
+     * @return
+     * @throws java.io.UnsupportedEncodingException
+     */
+    public byte[] encrypt(byte[] inputByteArray) throws UnsupportedEncodingException {
+        byte[] saltByteArray = KeyGenerators.string().generateKey().getBytes("utf-8");
+        byte[] resByteArray = new byte[saltByteArray.length + inputByteArray.length];
+        int saltLength = saltByteArray.length;
+        int inputLength = inputByteArray.length;
+
+        System.arraycopy(saltByteArray, 0, resByteArray, 0, saltLength);
+        System.arraycopy(inputByteArray, 0, resByteArray, saltLength, inputLength);
+
+        return encryptor.encrypt(resByteArray);
     }
-    public byte[] decrypt(byte[] input) {
-        return encryptor.decrypt(input);
+    /**
+     * FUNCTION DECRYPT BYTE ARRAY AND REMOVE SALT
+     * @param encryptByteArray
+     * @return 
+     */
+    public byte[] decrypt(byte[] encryptByteArray) {
+        byte[] decryptByteArray = encryptor.decrypt(encryptByteArray);
+        return Arrays.copyOfRange(decryptByteArray, 16, decryptByteArray.length);
     }
 }

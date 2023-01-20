@@ -138,7 +138,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 }
                 
                 us.save(new Users(username, encryptor.encrypt(lname.getBytes("utf-8")), encryptor.encrypt(name.getBytes("utf-8")), password, description));
-//                us.save(new Users(username, lname, name, password, description));
                 us.addRoleToUser(username, role);
             }
         }

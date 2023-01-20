@@ -29,13 +29,6 @@ public class OpeneyzApplication {
             Users suadmin = new Users("suadmin@gmail.com","SuperAdmin".getBytes("utf-8"), "SuperAdmin".getBytes("utf-8"), "1234abdcL?", "Je suis super administrateur");
             Users admin = new Users("admin@gmail.com", "Admin".getBytes("utf-8"), "Admin".getBytes("utf-8"), "1234abdcL?", "Je suis administrateur");
             Users user = new Users("user@gmail.com", "User".getBytes("utf-8"), "User".getBytes("utf-8"), "1234abdcL?", "je suis utilisateur");
-//            Users suadmin = new Users("suadmin@gmail.com", "SuperAdmin", "SuperAdmin", "1234abdcL?", "Je suis super administrateur");
-//            Users admin = new Users("admin@gmail.com", "Admin", "Admin", "1234abdcL?", "Je suis administrateur");
-//            Users user = new Users("user@gmail.com", "User", "User", "1234abdcL?", "je suis utilisateur");
-
-
-            String v = "zombiff";
-            suadmin.setLname(encryptor.encrypt(v.getBytes("utf-8")));
             
             us.save(suadmin);
             us.save(admin);
