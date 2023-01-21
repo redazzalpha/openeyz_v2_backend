@@ -30,7 +30,7 @@ public interface UserRepo extends JpaRepository<Users, String> {
     @Modifying
     @Transactional
     @Query("update Users set lname = :lname where username = :userId")
-    public void updateLname(String lname, String userId);
+    public void updateLname(byte[] lname, String userId);
 
     @Modifying
     @Transactional

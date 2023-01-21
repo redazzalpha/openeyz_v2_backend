@@ -6,18 +6,21 @@ package com.redazz.openeyz.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redazz.openeyz.beans.Encoder;
+import com.redazz.openeyz.beans.Encryptor;
 import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.Initiator;
 import com.redazz.openeyz.beans.WsUserMap;
 import com.redazz.openeyz.classes.Utils;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.ActionHandler;
+import com.redazz.openeyz.classes.AbstractUsers;
 import com.redazz.openeyz.models.Comment;
 import com.redazz.openeyz.models.Image;
 import com.redazz.openeyz.models.Likes;
 import com.redazz.openeyz.models.Notif;
 import com.redazz.openeyz.models.Post;
 import com.redazz.openeyz.models.Users;
+import com.redazz.openeyz.classes.UsersDec;
 import com.redazz.openeyz.services.CommentService;
 import com.redazz.openeyz.services.ImageService;
 import com.redazz.openeyz.services.LikesService;
@@ -29,6 +32,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -89,13 +93,15 @@ public class MainController {
     WsUserMap wsUserMap;
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
+    @Autowired
+    Encryptor encryptor;
 
     // is used to store temporary image filename
     private final List<String> imageTemp = new ArrayList<>();
 
     @Value("${jwt.secret}")
     private String secret;
-    
+
     @PostMapping("auth-failure")
     public ResponseEntity<String> authFailure(HttpServletRequest request, HttpServletResponse response) {
 
@@ -505,28 +511,39 @@ public class MainController {
     }
 
     @GetMapping("user")
-    public ResponseEntity<Users> getUser() {
-        return new ResponseEntity<>(us.findById(initiator.getUsername()).get(), HttpStatus.OK);
+    public ResponseEntity<AbstractUsers> getUser() {
+        Users user = us.findById(initiator.getUsername()).get();
+        
+     
+     /**
+      * HERE COMMENTED EXEMPLE OF HOW TO DECRYPT FIELDS USING USERSDEC OBJECT -
+      * TO MAKE IT WORK MUST RETURN ABSTRACTUSERS SUPER CLASS OBJECT IN THIS CASE 
+      * USING POLYMORPHISM TO BE ABLE TO RETURN USERS OBJECT THAT HAS ENCRYPTED FIELD
+      * OR RETURN USERSDEC THAT HAS DECRYPTED FIELDS
+      */   
+//        UsersDec usersDec = new UsersDec(user, encryptor);
+//        return new ResponseEntity<>(usersDec, HttpStatus.OK);
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
     @GetMapping("user/simple")
     public ResponseEntity<List<Object>> getAllSimple() {
         return new ResponseEntity<>(us.getAllSimple(), HttpStatus.OK);
     }
     @GetMapping("user/data")
-    public ResponseEntity<Users> getUserData(@RequestParam(required = true) String username) {
-
+    public ResponseEntity<Users> getUserData(@RequestParam(required = true) String username
+    ) {
         Users user = us.findById(username).get();
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
     @Transactional
     @PatchMapping("user/lname")
-    public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname) {
+    public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname) throws UnsupportedEncodingException {
 
         String message = "Last first name successfully modified";
         HttpStatus status = HttpStatus.OK;
 
         if (Utils.isFieldValid(lname)) {
-            us.updateLname(lname, initiator.getUsername());
+            us.updateLname(lname.getBytes("utf-8"), initiator.getUsername());
         }
         else {
             message = "field first name is invalid";
@@ -535,7 +552,7 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
     @PatchMapping("user/name")
-    public ResponseEntity<String> modifyName(@RequestParam(required = true, name = "data") String name) {
+    public ResponseEntity<String> modifyName(@RequestParam(required = true, name = "data") String name) throws UnsupportedEncodingException {
 
         String message = "Last name successfully modified";
         HttpStatus status = HttpStatus.OK;
@@ -550,7 +567,8 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
     @PatchMapping("user/password")
-    public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword) {
+    public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword
+    ) {
         String hash, message = "Invalid. Password does not match with the current";
         HttpStatus status = HttpStatus.BAD_REQUEST;
         Optional<Users> user = us.findById(initiator.getUsername());
@@ -583,18 +601,21 @@ public class MainController {
         return new ResponseEntity<>(message, status);
     }
     @PatchMapping("user/description")
-    public ResponseEntity<String> modifyDescription(@RequestParam(required = true) String description) {
+    public ResponseEntity<String> modifyDescription(@RequestParam(required = true) String description
+    ) {
         us.updateDescription(description, initiator.getUsername());
         return new ResponseEntity<>("Description successfully modified", HttpStatus.OK);
     }
     @PatchMapping("user/theme")
-    public ResponseEntity<String> modifyTheme(@RequestParam(required = true) boolean dark) {
+    public ResponseEntity<String> modifyTheme(@RequestParam(required = true) boolean dark
+    ) {
         us.updateDark(dark, initiator.getUsername());
         return new ResponseEntity<>("Dark theme has been successfully set", HttpStatus.OK);
     }
     // cannot send multipart file part using patch mapping cause doesn't work only work with post mapping
     @PostMapping("user/avatar")
-    public ResponseEntity<String> modifyUserAvatar(@RequestParam(required = false) MultipartFile file) {
+    public ResponseEntity<String> modifyUserAvatar(@RequestParam(required = false) MultipartFile file
+    ) {
         HttpStatus status = HttpStatus.OK;
         String message;
 
@@ -660,7 +681,8 @@ public class MainController {
 
     // experimental
     @PatchMapping("user/username")
-    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response) {
+    public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response
+    ) {
         us.updateUsername(username, initiator.getUsername());
         return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }

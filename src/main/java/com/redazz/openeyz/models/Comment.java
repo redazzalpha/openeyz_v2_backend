@@ -5,7 +5,7 @@
 package com.redazz.openeyz.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.redazz.openeyz.classes.PublicationComponent;
+import com.redazz.openeyz.classes.AbstractComponent;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
@@ -33,7 +33,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @RequiredArgsConstructor
 @JsonIgnoreProperties(value = {"id", "creation"}, allowGetters = true)
 @EqualsAndHashCode(callSuper = false)
-public class Comment extends PublicationComponent implements Serializable {
+public class Comment extends AbstractComponent implements Serializable {
     // properties
     @NonNull
     @Column(nullable = false, columnDefinition = "varchar(255) not null")

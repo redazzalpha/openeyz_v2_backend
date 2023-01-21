@@ -4,25 +4,15 @@
  */
 package com.redazz.openeyz.models;
 
+import com.redazz.openeyz.classes.AbstractUsers;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.Lob;
-import javax.persistence.ManyToMany;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.validator.constraints.Length;
 
 /**
  *
@@ -30,55 +20,18 @@ import org.hibernate.validator.constraints.Length;
  */
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Users implements Serializable {
+public class Users extends AbstractUsers implements Serializable {
     // properties
-    @Id
     @NonNull
-    private String username;
-
-    @NonNull
-    @Lob
+    @Column(columnDefinition = "BYTEA", nullable = false)
     private byte[] lname;
 
-    @NonNull
-    @Lob
-    private byte[] name;
-
-    @NonNull
-    @Length(min = 8)
-    @Column(nullable = false)
-    private String password;
-
-    @Column(columnDefinition = "boolean default true", nullable = false)
-    private boolean state = true;
-
-    @NonNull
-    @Column(nullable = true, columnDefinition = "varchar(255) default 'no description for the moment'")
-    private String description;
-
-    @Column(nullable = true)
-    private String avatarSrc;
-
-    @Column(columnDefinition = "boolean default false", nullable = false)
-    private boolean dark;
-
-    // relationships
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "username", referencedColumnName = "username"),
-            inverseJoinColumns = @JoinColumn(name = "role", referencedColumnName = "roleName")
-    )
-    private List<Role> roles = new ArrayList<>();
-
-    public boolean getDark() {
-        return dark;
-    }
-
-    public boolean getState() {
-        return state;
+    // constructor
+    public Users(String username, byte[] lname, String name, String password, String description) {
+        super(username, name, password, description);
+        this.lname = lname;
     }
 }

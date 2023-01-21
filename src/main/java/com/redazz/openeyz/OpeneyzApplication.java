@@ -26,9 +26,9 @@ public class OpeneyzApplication {
     @Bean
     public CommandLineRunner initCfg() {
         return (String[] args) -> {
-            Users suadmin = new Users("suadmin@gmail.com","SuperAdmin".getBytes("utf-8"), "SuperAdmin".getBytes("utf-8"), "1234abdcL?", "Je suis super administrateur");
-            Users admin = new Users("admin@gmail.com", "Admin".getBytes("utf-8"), "Admin".getBytes("utf-8"), "1234abdcL?", "Je suis administrateur");
-            Users user = new Users("user@gmail.com", "User".getBytes("utf-8"), "User".getBytes("utf-8"), "1234abdcL?", "je suis utilisateur");
+            Users suadmin = new Users("suadmin@gmail.com",encryptor.encrypt("SuperAdmin".getBytes("utf-8")), "SuperAdmin", "1234abdcL?", "Je suis super administrateur");
+            Users admin = new Users("admin@gmail.com", encryptor.encrypt("Admin".getBytes("utf-8")), "Admin", "1234abdcL?", "Je suis administrateur");
+            Users user = new Users("user@gmail.com", encryptor.encrypt("User".getBytes("utf-8")), "User", "1234abdcL?", "je suis utilisateur");
             
             us.save(suadmin);
             us.save(admin);

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 public class Initiator {
     private String username;
     private byte[] lname;
-    private byte[] name;
+    private String name;
     private String password;
     private String description;
     private String avatarSrc;

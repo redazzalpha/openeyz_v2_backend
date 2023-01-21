@@ -6,7 +6,7 @@ package com.redazz.openeyz.handlers;
 
 import com.redazz.openeyz.Exceptions.DataNotFoundException;
 import com.redazz.openeyz.Exceptions.ForbiddenException;
-import com.redazz.openeyz.classes.PublicationComponent;
+import com.redazz.openeyz.classes.AbstractComponent;
 import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
 import java.util.function.Function;
@@ -25,7 +25,7 @@ public class ActionHandler {
     @Autowired
     UserService us;
 
-    public <T extends PublicationComponent> ResponseEntity<String> run(String currentUserId, T publicationComponent, Function<Long, Void> callback) {
+    public <T extends AbstractComponent> ResponseEntity<String> run(String currentUserId, T publicationComponent, Function<Long, Void> callback) {
         Users currentUser = null;
         try {
             currentUser = us.findById(currentUserId).get();
@@ -62,7 +62,7 @@ public class ActionHandler {
 
         return new ResponseEntity<>("action handler success", HttpStatus.OK);
     }
-    private <T extends PublicationComponent> boolean isAuthorized(Users currentUser, T publicationComponent) {
+    private <T extends AbstractComponent> boolean isAuthorized(Users currentUser, T publicationComponent) {
         String currentUserRole = currentUser.getRoles().get(0).getRoleName().toString();
         String publicationComponentAuthor = publicationComponent.getAuthor().getUsername();
 

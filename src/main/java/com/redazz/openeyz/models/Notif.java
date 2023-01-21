@@ -5,7 +5,7 @@
 package com.redazz.openeyz.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.redazz.openeyz.classes.PublicationComponent;
+import com.redazz.openeyz.classes.AbstractComponent;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,7 +30,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @JsonIgnoreProperties(value = "id", allowGetters = true)
 @EqualsAndHashCode(callSuper = false)
-public class Notif extends PublicationComponent implements Serializable {
+public class Notif extends AbstractComponent implements Serializable {
     // properties
     @NonNull
     @Column(columnDefinition = "boolean default false", nullable = false)

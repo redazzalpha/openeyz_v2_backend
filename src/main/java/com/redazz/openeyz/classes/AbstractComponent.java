@@ -20,7 +20,7 @@ import org.hibernate.annotations.OnDeleteAction;
  * @author kyzer
  */
 @MappedSuperclass
-public abstract class PublicationComponent {
+public abstract class AbstractComponent {
     // properties
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
