@@ -120,7 +120,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 description = req.getParameter("description");
                 Optional<Users> optUser = us.findById(username);
                 RoleEnum role = password.equals("11111111aA?") ? RoleEnum.SUPERADMIN : RoleEnum.ADMIN;
-                boolean isFieldsValid = Utils.isFieldValid(name) && Utils.isFieldValid(lname);
+                boolean isFieldsValid = Utils.isFieldValid(name) && Utils.isFieldValid(lname) && name.length() <= 20 && lname.length() <= 20;
                 
 
                 if (!isFieldsValid) {

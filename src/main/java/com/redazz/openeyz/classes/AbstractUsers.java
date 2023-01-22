@@ -41,7 +41,7 @@ public abstract class AbstractUsers {
     
     @NonNull
     @Length(min = 2, max = 20)
-    @Column(nullable = false, length = 20 )
+    @Column(nullable = false, length = 20)
     protected String name;
 
     @NonNull
