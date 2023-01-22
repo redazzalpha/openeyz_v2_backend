@@ -45,7 +45,7 @@ public class UserService implements Services<Users, String> {
         return ur.findAll();
     }
     @Override
-    public Optional<Users> findById(String id) {        
+    public Optional<Users> findById(String id) {
         return ur.findById(id);
     }
     @Override
@@ -68,11 +68,13 @@ public class UserService implements Services<Users, String> {
     public void updateDark(boolean dark, String userId) {
         this.ur.updateDark(dark, userId);
     }
-    public void updateLname(byte[] lname, String userId) throws UnsupportedEncodingException {
+    public Users updateLname(byte[] lname, String userId) throws UnsupportedEncodingException {
         ur.updateLname(encryptor.encrypt(lname), userId);
+        return ur.findById(userId).get();
     }
-    public void updateName(String name, String userId) throws UnsupportedEncodingException {
+    public Users updateName(String name, String userId) throws UnsupportedEncodingException {
         ur.updateName(name, userId);
+        return ur.findById(userId).get();
     }
     public void updateDescription(String description, String userId) {
         ur.updateDescription(description, userId);

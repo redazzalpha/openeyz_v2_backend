@@ -20,7 +20,6 @@ import com.redazz.openeyz.models.Likes;
 import com.redazz.openeyz.models.Notif;
 import com.redazz.openeyz.models.Post;
 import com.redazz.openeyz.models.Users;
-import com.redazz.openeyz.classes.UsersDec;
 import com.redazz.openeyz.services.CommentService;
 import com.redazz.openeyz.services.ImageService;
 import com.redazz.openeyz.services.LikesService;
@@ -513,16 +512,16 @@ public class MainController {
     @GetMapping("user")
     public ResponseEntity<AbstractUsers> getUser() {
         Users user = us.findById(initiator.getUsername()).get();
-        
-     
      /**
       * HERE COMMENTED EXEMPLE OF HOW TO DECRYPT FIELDS USING USERSDEC OBJECT -
       * TO MAKE IT WORK MUST RETURN ABSTRACTUSERS SUPER CLASS OBJECT IN THIS CASE 
       * USING POLYMORPHISM TO BE ABLE TO RETURN USERS OBJECT THAT HAS ENCRYPTED FIELD
-      * OR RETURN USERSDEC THAT HAS DECRYPTED FIELDS
+      * OR RETURN USERSDEC THAT HAS DECRYPTED FIELDS -
+      * 
+      * UsersDec usersDec = new UsersDec(user, encryptor);
+      * return new ResponseEntity<>(usersDec, HttpStatus.OK);
+      * 
       */   
-//        UsersDec usersDec = new UsersDec(user, encryptor);
-//        return new ResponseEntity<>(usersDec, HttpStatus.OK);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
     @GetMapping("user/simple")
@@ -537,34 +536,32 @@ public class MainController {
     }
     @Transactional
     @PatchMapping("user/lname")
-    public ResponseEntity<String> modifyLname(@RequestParam(required = true, name = "data") String lname) throws UnsupportedEncodingException {
+    public ResponseEntity<Users> modifyLname(@RequestParam(required = true, name = "data") String lname) throws UnsupportedEncodingException {
 
-        String message = "Last first name successfully modified";
+        Users user = null;
         HttpStatus status = HttpStatus.OK;
 
         if (Utils.isFieldValid(lname)) {
-            us.updateLname(lname.getBytes("utf-8"), initiator.getUsername());
+            user = us.updateLname(lname.getBytes("utf-8"), initiator.getUsername());
         }
         else {
-            message = "field first name is invalid";
             status = HttpStatus.BAD_REQUEST;
         }
-        return new ResponseEntity<>(message, status);
+        return new ResponseEntity<>(user, status);
     }
     @PatchMapping("user/name")
-    public ResponseEntity<String> modifyName(@RequestParam(required = true, name = "data") String name) throws UnsupportedEncodingException {
+    public ResponseEntity<Users> modifyName(@RequestParam(required = true, name = "data") String name) throws UnsupportedEncodingException {
 
-        String message = "Last name successfully modified";
+        Users user = null;
         HttpStatus status = HttpStatus.OK;
 
         if (Utils.isFieldValid(name)) {
-            us.updateName(name, initiator.getUsername());
+            user = us.updateName(name, initiator.getUsername());
         }
         else {
-            message = "field name is invalid";
             status = HttpStatus.BAD_REQUEST;
         }
-        return new ResponseEntity<>(message, status);
+        return new ResponseEntity<>(user, status);
     }
     @PatchMapping("user/password")
     public ResponseEntity<String> modifyPassword(@RequestParam(required = true) String currentPassword, @RequestParam(required = true) String newPassword
@@ -679,6 +676,13 @@ public class MainController {
         return new ResponseEntity<>("logout successfull", HttpStatus.OK);
     }
 
+    
+    @GetMapping("user/reveal")
+    public ResponseEntity<String> reveal() {
+        return new ResponseEntity<>(new String(encryptor.decrypt(initiator.getLname())), HttpStatus.OK);
+    }
+    
+    
     // experimental
     @PatchMapping("user/username")
     public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response
