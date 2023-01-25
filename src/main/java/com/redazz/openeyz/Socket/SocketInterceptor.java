@@ -47,11 +47,11 @@ public class SocketInterceptor implements ChannelInterceptor {
             StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
             String authHeaderValue = accessor.getNativeHeader("Authorization").get(0);
             String token = authHeaderValue.split("Bearer ")[1];
-
+            
             Jws<Claims> jws = jwt.decode(token, secret);
             String usernameToken = jws.getBody().get("username").toString();
             Optional<Users> optUser = us.findById(usernameToken);
-            
+
             if (optUser.isEmpty()) {
                 throw new NoUserFoundException("user value is not present");
             }
@@ -62,10 +62,6 @@ public class SocketInterceptor implements ChannelInterceptor {
 
             if (isBanned) {
                 throw new ForbiddenException("your account has been disabled");
-            }
-
-            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                wsUserMap.addUser(currentUser.getUsername(), accessor.getUser().getName());
             }
             
             return ChannelInterceptor.super.preSend(message, channel);

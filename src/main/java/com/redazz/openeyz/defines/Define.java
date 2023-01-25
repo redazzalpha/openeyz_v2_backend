@@ -29,11 +29,11 @@ public class Define {
     public static final String AVATARS_DIRECTORY = ASSETS_DIRECTORY + "/avatars";
     public static final String IMAGES_DIRECTORY = ASSETS_DIRECTORY + "/images";
     
-    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";    
-    public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
+//    public static final String SERVER_DOMAIN = "https://openeyz-v2.herokuapp.com";    
+//    public static final String CLIENT_DOMAIN = "https://openeyz.netlify.app";
     
-//    public static final String SERVER_DOMAIN = "http://localhost:8081";
-//    public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
+    public static final String SERVER_DOMAIN = "http://localhost:8081";
+    public static final String CLIENT_DOMAIN = "http://192.168.0.20:8080";
 
     public static final String DOWNLOAD_IMAGE_URL = SERVER_DOMAIN + API_URL + "/img?img=";
     public static final String DOWNLOAD_AVATAR_URL = SERVER_DOMAIN + API_URL + "/avatar?img=";

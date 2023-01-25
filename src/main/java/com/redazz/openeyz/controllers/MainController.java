@@ -90,6 +90,8 @@ public class MainController {
     Initiator initiator;
     @Autowired
     WsUserMap wsUserMap;
+//    @Autowired
+//    WSUserList wSUserList;
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
     @Autowired
@@ -671,8 +673,6 @@ public class MainController {
 
     @GetMapping("logout")
     public ResponseEntity<String> logout() {
-        // TODO: FOUND A WAY TO GET WS USERNAME TO JUST REMOVE ONE USING wsUserMap.remove(String key, String value)
-        wsUserMap.removeAll(initiator.getUsername());
         return new ResponseEntity<>("logout successfull", HttpStatus.OK);
     }
 

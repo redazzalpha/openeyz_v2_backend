@@ -15,32 +15,50 @@ import org.springframework.stereotype.Component;
  * @author kyzer
  */
 @Component
-public class WsUserMap  {
+public class WsUserMap {
     private ListMultimap<String, String> multimap = ArrayListMultimap.create();
-    
+
     public ListMultimap<String, String> getMap() {
         return multimap;
     }
     public List<String> getValues(String key) {
         return multimap.get(key);
     }
-    public void addUser(String username, String wsUsername) {
-        multimap.put(username, wsUsername);
+    public boolean addUser(String username, String wsUsername) {
+        boolean added = false;
+        if (username != null && wsUsername != null) {
+            added = multimap.put(username, wsUsername);
+        }
+        return added;
     }
     public boolean contains(String key) {
         return multimap.containsKey(key);
     }
-    public void remove(String key, String value) {
-        if(multimap.containsEntry(key, value))
-        multimap.remove(key, value);
+    public boolean remove(String key, String value) {
+        boolean removed = false;
+        if (multimap.containsEntry(key, value)) {
+            removed = multimap.remove(key, value);
+        }
+        return removed;
+    }
+    public boolean removeUser(String key, String value) {
+        boolean removed = false;
+        if (multimap.containsEntry(key, value)) {
+            removed = multimap.remove(key, value);
+        }
+        return removed;
     }
     public void removeAll(String key) {
-        if(multimap.containsKey(key))
-        multimap.removeAll(key);
+        if (multimap.containsKey(key)) {
+            multimap.removeAll(key);
+        }
+    }
+    public void clear() {
+        multimap.clear();
     }
     public void showList() {
-        for(Map.Entry s : multimap.entries()) {
-        System.out.println("-- key: " + s.getKey() + " -- value: " + s.getValue());
+        for (Map.Entry s : multimap.entries()) {
+            System.out.println("-- key: " + s.getKey() + " -- value: " + s.getValue());
         }
     }
 }
