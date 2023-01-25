@@ -30,23 +30,18 @@ public class SocketInterceptor implements ChannelInterceptor {
     private final Initiator initiator;
     private final JwTokenUtils jwt;
     private final String secret;
-    private final WsUserMap wsUserMap;
 
     public SocketInterceptor(UserService us, Initiator initiator, JwTokenUtils jwt, String secret, WsUserMap wsUserMap) {
         this.us = us;
         this.initiator = initiator;
         this.jwt = jwt;
         this.secret = secret;
-        this.wsUserMap = wsUserMap;
     }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        System.out.println("************************************************** INTERCEPTOR STARTS **************************************************");
-
         try {
             StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        System.out.println("************************************************** INTERCEPTOR COMMAND -> " + accessor.getCommand() + " **************************************************");
             String authHeaderValue = accessor.getNativeHeader("Authorization").get(0);
             String token = authHeaderValue.split("Bearer ")[1];
 
@@ -66,13 +61,9 @@ public class SocketInterceptor implements ChannelInterceptor {
                 throw new ForbiddenException("your account has been disabled");
             }
 
-            System.out.println("************************************************** INTERCEPTOR SUCCESS **************************************************\n\n");
-
             return ChannelInterceptor.super.preSend(message, channel);
         }
         catch (ForbiddenException | NoUserFoundException | NullPointerException e) {
-            System.out.println("************************************************** INTERCEPTOR ERROR **************************************************\n\n");
-
             return null;
 
         }

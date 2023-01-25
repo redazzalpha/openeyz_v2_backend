@@ -74,7 +74,6 @@ public class Utils {
         boolean isSupervisorRoute = req.getRequestURI().equals(Define.ADMIN_URL);
 
         if (isCheckToken) {
-        System.out.println("-------------************//////////////////////////////////// in the controllerr here ");
             if (req.getHeader("Authorization") == null) {
                 throw new DataNotFoundException("authorization header is not present");
             }

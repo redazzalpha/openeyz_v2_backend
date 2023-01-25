@@ -78,13 +78,8 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
                 super.afterConnectionEstablished(session);
 
-                boolean a = wsUserMap.addUser(initiator.getUsername(), session);
-                System.out.println("+++++++++++++++++++++++++++++++ after connection established -> try to add: " + initiator.getUsername() + " - " + session.getPrincipal().getName());
-                System.out.println("+++++++++++++++++++++++++++++++ after connection established -> add: " + a);
-                System.out.println("+++++++++++++++++++++++++++++++ after connection established -> show list +++++++++++++++++++++++++++++++");
-                wsUserMap.showList();
-                System.out.println("\n");
-                if (!a) {
+                boolean added = wsUserMap.addUser(initiator.getUsername(), session);
+                if (!added) {
                     session.close(CloseStatus.BAD_DATA);
                 }
             }
@@ -92,13 +87,10 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
             public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
                 super.afterConnectionClosed(session, closeStatus);
 
-                boolean r = wsUserMap.removeUser(initiator.getUsername(), session);
-                System.out.println("------------------------------- after connection closed -> try to removed: " + initiator.getUsername() + " - " + session.getPrincipal().getName());
-                System.out.println("------------------------------- after connection closed -> removed: " + r);
-                System.out.println("------------------------------- after connection closed -> show list -------------------------------");
-                wsUserMap.showList();
-                System.out.println("\n");
-                session.close();
+                boolean removed = wsUserMap.removeUser(initiator.getUsername(), session);
+                if (removed) {
+                    session.close();
+                }
             }
         });
     }

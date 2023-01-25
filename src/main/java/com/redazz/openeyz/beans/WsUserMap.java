@@ -70,11 +70,6 @@ public class WsUserMap {
     }
     public void deleteClosed() {
         WebSocketSession session;
-//        for (Map.Entry s : multimap.entries()) {
-//            session = (WebSocketSession) s.getValue();
-//            if(!(session.isOpen()))
-//                multimap.remove(s.getKey(), s.getValue());
-//        }
         Iterator<Map.Entry<String, WebSocketSession>> it = multimap.entries().iterator();
         while (it.hasNext()) {
             Map.Entry<String, WebSocketSession> map = it.next();

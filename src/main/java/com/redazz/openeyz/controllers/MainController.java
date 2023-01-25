@@ -284,7 +284,6 @@ public class MainController {
                     * NEED TO SLEEP THREAD CAUSE GOT TO WAIT 
                     * FOR SERVICE SAVE DATA OVER DATABASE
                      */
-//                    Thread.sleep(1000);
                     wsSendSignalToAll("POST");
                 }
                 else {
@@ -330,7 +329,6 @@ public class MainController {
                         * NEED TO SLEEP THREAD CAUSE GOT TO WAIT
                         * FOR SERVICE SAVE DATA OVER DATABASE
                          */
-//                        Thread.sleep(1000);
                         wsSendSignalToAll("POST");
 
                     }
@@ -760,21 +758,14 @@ public class MainController {
     }
     // websocket server send signal to all connected users
     private void wsSendSignalToAll(String signal) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> send to all signal : " + signal);
-        wsUserMap.showList();
-        System.out.println("\n\n");
         for (Map.Entry entry : wsUserMap.getMap().entries()) {
             simpMessagingTemplate.convertAndSendToUser(((WebSocketSession) (entry.getValue())).getPrincipal().getName(), Define.WEBSOCKET_URL + "/signal", signal);
         }
     }
     // websocket server send signal to specific user
     private void wsSendSignalTo(String signal, String username) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> send to signal : " + signal + " to username " + username);
-//        wsUserMap.showList();
         if (wsUserMap.contains(username)) {
-            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> username is contained -> " + username);
             for (WebSocketSession session : wsUserMap.getValues(username)) {
-                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> send signal to  " + username + " at ws-username " + session.getPrincipal().getName() + "\n\n");
                 simpMessagingTemplate.convertAndSendToUser(session.getPrincipal().getName(), Define.WEBSOCKET_URL + "/signal", signal);
             }
         }
