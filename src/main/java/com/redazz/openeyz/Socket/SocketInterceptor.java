@@ -42,12 +42,14 @@ public class SocketInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        System.out.println("************************************************** INTERCEPTOR STARTS **************************************************");
 
         try {
             StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        System.out.println("************************************************** INTERCEPTOR COMMAND -> " + accessor.getCommand() + " **************************************************");
             String authHeaderValue = accessor.getNativeHeader("Authorization").get(0);
             String token = authHeaderValue.split("Bearer ")[1];
-            
+
             Jws<Claims> jws = jwt.decode(token, secret);
             String usernameToken = jws.getBody().get("username").toString();
             Optional<Users> optUser = us.findById(usernameToken);
@@ -64,22 +66,13 @@ public class SocketInterceptor implements ChannelInterceptor {
                 throw new ForbiddenException("your account has been disabled");
             }
 
-//            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-//                wsUserMap.addUser(currentUser.getUsername(), accessor.getUser().getName());
-//                System.out.println("------------------------------- interceptor connect show list");
-//                wsUserMap.showList();
-//                System.out.println("------------------------------- interceptor connect show list");
-//            }
-//            if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
-//                wsUserMap.removeUser(currentUser.getUsername(), accessor.getUser().getName());
-//                System.out.println("------------------------------- interceptor disconnect show list");
-//                wsUserMap.showList();
-//                System.out.println("------------------------------- interceptor disconnect show list");
-//            }
+            System.out.println("************************************************** INTERCEPTOR SUCCESS **************************************************\n\n");
 
             return ChannelInterceptor.super.preSend(message, channel);
         }
         catch (ForbiddenException | NoUserFoundException | NullPointerException e) {
+            System.out.println("************************************************** INTERCEPTOR ERROR **************************************************\n\n");
+
             return null;
 
         }

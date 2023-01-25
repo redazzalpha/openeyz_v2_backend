@@ -9,12 +9,19 @@ import com.redazz.openeyz.beans.JwTokenUtils;
 import com.redazz.openeyz.beans.WsUserMap;
 import com.redazz.openeyz.defines.Define;
 import com.redazz.openeyz.handlers.WSHandshakeHandler;
+import com.redazz.openeyz.models.Users;
 import com.redazz.openeyz.services.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
@@ -70,25 +77,27 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
             @Override
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
                 super.afterConnectionEstablished(session);
-                
+
                 boolean a = wsUserMap.addUser(initiator.getUsername(), session);
-                System.out.println("------------------------------- after connection established -> try to add: "  + initiator.getUsername()   + " - " + session.getPrincipal().getName());
-                System.out.println("------------------------------- after connection established -> add: " + a);
-                System.out.println("------------------------------- after connection established -> show list");
+                System.out.println("+++++++++++++++++++++++++++++++ after connection established -> try to add: " + initiator.getUsername() + " - " + session.getPrincipal().getName());
+                System.out.println("+++++++++++++++++++++++++++++++ after connection established -> add: " + a);
+                System.out.println("+++++++++++++++++++++++++++++++ after connection established -> show list +++++++++++++++++++++++++++++++");
                 wsUserMap.showList();
-                System.out.println("------------------------------- after connection established -> show list");
-                if(!a) session.close();
+                System.out.println("\n");
+                if (!a) {
+                    session.close(CloseStatus.BAD_DATA);
+                }
             }
             @Override
             public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
                 super.afterConnectionClosed(session, closeStatus);
-                
+
                 boolean r = wsUserMap.removeUser(initiator.getUsername(), session);
-                System.out.println("------------------------------- after connection closed -> try to removed: "  + initiator.getUsername()   + " - " + session.getPrincipal().getName());
+                System.out.println("------------------------------- after connection closed -> try to removed: " + initiator.getUsername() + " - " + session.getPrincipal().getName());
                 System.out.println("------------------------------- after connection closed -> removed: " + r);
-                System.out.println("------------------------------- after connection closed -> show list"); 
+                System.out.println("------------------------------- after connection closed -> show list -------------------------------");
                 wsUserMap.showList();
-                System.out.println("------------------------------- after connection closed -> show list"); 
+                System.out.println("\n");
                 session.close();
             }
         });

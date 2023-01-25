@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.Tuple;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -253,7 +255,7 @@ public class MainController {
     }
     @Transactional
     @PostMapping("publication")
-    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post, @RequestParam(required = false) MultipartFile[] images) {
+    public ResponseEntity<String> postPublication(@RequestParam(required = true) String post, @RequestParam(required = false) MultipartFile[] images) throws InterruptedException {
         String username = initiator.getUsername();
         String message;
         HttpStatus status;
@@ -278,6 +280,11 @@ public class MainController {
                     // if no error delete filenames in imageTemp
                     imageTemp.clear();
 
+                    /*
+                    * NEED TO SLEEP THREAD CAUSE GOT TO WAIT 
+                    * FOR SERVICE SAVE DATA OVER DATABASE
+                     */
+//                    Thread.sleep(1000);
                     wsSendSignalToAll("POST");
                 }
                 else {
@@ -317,8 +324,20 @@ public class MainController {
                     }
 
                     ps.deleteById(idPost);
-                    wsSendSignalToAll("POST");
-                    return null;
+
+                    try {
+                        /*
+                        * NEED TO SLEEP THREAD CAUSE GOT TO WAIT
+                        * FOR SERVICE SAVE DATA OVER DATABASE
+                         */
+//                        Thread.sleep(1000);
+                        wsSendSignalToAll("POST");
+
+                    }
+                    finally {
+                        return null;
+                    }
+
                 });
             }
             else {
@@ -340,7 +359,7 @@ public class MainController {
     }
     @Transactional
     @PostMapping("comment")
-    public ResponseEntity<String> postComment(@RequestParam(required = true) String comment, @RequestParam(required = true) long postId) {
+    public ResponseEntity<String> postComment(@RequestParam(required = true) String comment, @RequestParam(required = true) long postId) throws InterruptedException {
         Optional<Post> optPost = ps.findById(postId);
         Optional<Users> optAuthor = us.findById(initiator.getUsername());
         String message = "Comment successfully created";
@@ -360,6 +379,11 @@ public class MainController {
                     Notif notif = new Notif(false, owner, com, author);
                     ns.save(notif);
 
+                    /*
+                    * NEED TO SLEEP THREAD CAUSE GOT TO WAIT 
+                    * FOR SERVICE SAVE DATA OVER DATABASE
+                    */
+                    Thread.sleep(1000);
                     wsSendSignalTo("NOTIF", owner.getUsername());
                 }
             }
@@ -515,16 +539,12 @@ public class MainController {
     @GetMapping("user")
     public ResponseEntity<AbstractUsers> getUser() {
         Users user = us.findById(initiator.getUsername()).get();
-     /**
-      * HERE COMMENTED EXEMPLE OF HOW TO DECRYPT FIELDS USING USERSDEC OBJECT -
-      * TO MAKE IT WORK MUST RETURN ABSTRACTUSERS SUPER CLASS OBJECT IN THIS CASE 
-      * USING POLYMORPHISM TO BE ABLE TO RETURN USERS OBJECT THAT HAS ENCRYPTED FIELD
-      * OR RETURN USERSDEC THAT HAS DECRYPTED FIELDS -
-      * 
-      * UsersDec usersDec = new UsersDec(user, encryptor);
-      * return new ResponseEntity<>(usersDec, HttpStatus.OK);
-      * 
-      */   
+        /**
+         * HERE COMMENTED EXEMPLE OF HOW TO DECRYPT FIELDS USING USERSDEC OBJECT - TO MAKE IT WORK MUST RETURN ABSTRACTUSERS SUPER CLASS OBJECT IN THIS CASE USING POLYMORPHISM TO BE ABLE TO RETURN USERS OBJECT THAT HAS ENCRYPTED FIELD OR RETURN USERSDEC THAT HAS DECRYPTED FIELDS -
+         *
+         * UsersDec usersDec = new UsersDec(user, encryptor); return new ResponseEntity<>(usersDec, HttpStatus.OK);
+         *
+         */
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
     @GetMapping("user/simple")
@@ -677,13 +697,17 @@ public class MainController {
         return new ResponseEntity<>("logout successfull", HttpStatus.OK);
     }
 
-    
     @GetMapping("user/reveal")
     public ResponseEntity<String> reveal() {
         return new ResponseEntity<>(new String(encryptor.decrypt(initiator.getLname())), HttpStatus.OK);
     }
-    
-    
+
+    // this controller is used to initialize initiator bean for webscoket verifications
+    @PostMapping("user/websocket/init")
+    public ResponseEntity<String> InitWsInitiator() {
+        return new ResponseEntity("client socket initiator initialized successfully", HttpStatus.OK);
+    }
+
     // experimental
     @PatchMapping("user/username")
     public ResponseEntity<String> patchUsername(@RequestParam(required = true, name = "data") String username, HttpServletResponse response
@@ -691,7 +715,7 @@ public class MainController {
         us.updateUsername(username, initiator.getUsername());
         return new ResponseEntity<>("Username successfully modified", HttpStatus.OK);
     }
-
+    
     private boolean deleteAvatar(String avatarSrc) {
         boolean success = false;
         if (avatarSrc != null) {
@@ -736,22 +760,24 @@ public class MainController {
     }
     // websocket server send signal to all connected users
     private void wsSendSignalToAll(String signal) {
-        System.out.println("-------------send to all signal : " + signal );
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> send to all signal : " + signal);
         wsUserMap.showList();
+        System.out.println("\n\n");
         for (Map.Entry entry : wsUserMap.getMap().entries()) {
-            simpMessagingTemplate.convertAndSendToUser(((WebSocketSession)(entry.getValue())).getPrincipal().getName(), Define.WEBSOCKET_URL + "/signal", signal);
+            simpMessagingTemplate.convertAndSendToUser(((WebSocketSession) (entry.getValue())).getPrincipal().getName(), Define.WEBSOCKET_URL + "/signal", signal);
         }
     }
     // websocket server send signal to specific user
     private void wsSendSignalTo(String signal, String username) {
-        System.out.println("-------------send to signal : " + signal );
-        wsUserMap.showList();
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> send to signal : " + signal + " to username " + username);
+//        wsUserMap.showList();
         if (wsUserMap.contains(username)) {
-            System.out.println("*************************************************************************** username: " + username);
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> username is contained -> " + username);
             for (WebSocketSession session : wsUserMap.getValues(username)) {
-            System.out.println("*************************************************************************** session.getPrincipal().getName(): " + session.getPrincipal().getName());
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> send signal to  " + username + " at ws-username " + session.getPrincipal().getName() + "\n\n");
                 simpMessagingTemplate.convertAndSendToUser(session.getPrincipal().getName(), Define.WEBSOCKET_URL + "/signal", signal);
             }
         }
+
     }
 }

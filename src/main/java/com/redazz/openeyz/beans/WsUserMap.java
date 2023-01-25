@@ -59,8 +59,13 @@ public class WsUserMap {
         multimap.clear();
     }
     public void showList() {
-        for (Map.Entry s : multimap.entries()) {
-            System.out.println("-- key: " + s.getKey() + " -- wsSession: " + ((WebSocketSession)(s.getValue())).getPrincipal().getName());
+        if (multimap.size() > 0) {
+            for (Map.Entry s : multimap.entries()) {
+                System.out.println("-- key: " + s.getKey() + " -- wsSession: " + ((WebSocketSession) (s.getValue())).getPrincipal().getName());
+            }
+        }
+        else {
+            System.out.println(" -- wsUserMap is empty -- ");
         }
     }
     public void deleteClosed() {
@@ -71,11 +76,12 @@ public class WsUserMap {
 //                multimap.remove(s.getKey(), s.getValue());
 //        }
         Iterator<Map.Entry<String, WebSocketSession>> it = multimap.entries().iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Map.Entry<String, WebSocketSession> map = it.next();
             session = map.getValue();
-            if(!(session.isOpen()))
+            if (!(session.isOpen())) {
                 it.remove();
+            }
         }
     }
 }
