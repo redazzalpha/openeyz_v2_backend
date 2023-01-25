@@ -63,7 +63,20 @@ public class SocketInterceptor implements ChannelInterceptor {
             if (isBanned) {
                 throw new ForbiddenException("your account has been disabled");
             }
-            
+
+//            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+//                wsUserMap.addUser(currentUser.getUsername(), accessor.getUser().getName());
+//                System.out.println("------------------------------- interceptor connect show list");
+//                wsUserMap.showList();
+//                System.out.println("------------------------------- interceptor connect show list");
+//            }
+//            if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
+//                wsUserMap.removeUser(currentUser.getUsername(), accessor.getUser().getName());
+//                System.out.println("------------------------------- interceptor disconnect show list");
+//                wsUserMap.showList();
+//                System.out.println("------------------------------- interceptor disconnect show list");
+//            }
+
             return ChannelInterceptor.super.preSend(message, channel);
         }
         catch (ForbiddenException | NoUserFoundException | NullPointerException e) {

@@ -71,18 +71,19 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
             public void afterConnectionEstablished(WebSocketSession session) throws Exception {
                 super.afterConnectionEstablished(session);
                 
-                boolean a = wsUserMap.addUser(initiator.getUsername(), session.getPrincipal().getName());
+                boolean a = wsUserMap.addUser(initiator.getUsername(), session);
                 System.out.println("------------------------------- after connection established -> try to add: "  + initiator.getUsername()   + " - " + session.getPrincipal().getName());
                 System.out.println("------------------------------- after connection established -> add: " + a);
                 System.out.println("------------------------------- after connection established -> show list");
                 wsUserMap.showList();
                 System.out.println("------------------------------- after connection established -> show list");
+                if(!a) session.close();
             }
             @Override
             public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
                 super.afterConnectionClosed(session, closeStatus);
                 
-                boolean r = wsUserMap.removeUser(initiator.getUsername(), session.getPrincipal().getName());
+                boolean r = wsUserMap.removeUser(initiator.getUsername(), session);
                 System.out.println("------------------------------- after connection closed -> try to removed: "  + initiator.getUsername()   + " - " + session.getPrincipal().getName());
                 System.out.println("------------------------------- after connection closed -> removed: " + r);
                 System.out.println("------------------------------- after connection closed -> show list"); 

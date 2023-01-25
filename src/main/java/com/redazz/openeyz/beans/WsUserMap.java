@@ -9,6 +9,7 @@ import com.google.common.collect.ListMultimap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketSession;
 
 /**
  *
@@ -16,35 +17,35 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class WsUserMap {
-    private ListMultimap<String, String> multimap = ArrayListMultimap.create();
+    private ListMultimap<String, WebSocketSession> multimap = ArrayListMultimap.create();
 
-    public ListMultimap<String, String> getMap() {
+    public ListMultimap<String, WebSocketSession> getMap() {
         return multimap;
     }
-    public List<String> getValues(String key) {
+    public List<WebSocketSession> getValues(String key) {
         return multimap.get(key);
     }
-    public boolean addUser(String username, String wsUsername) {
+    public boolean addUser(String username, WebSocketSession wsSession) {
         boolean added = false;
-        if (username != null && wsUsername != null) {
-            added = multimap.put(username, wsUsername);
+        if (username != null && wsSession != null) {
+            added = multimap.put(username, wsSession);
         }
         return added;
     }
     public boolean contains(String key) {
         return multimap.containsKey(key);
     }
-    public boolean remove(String key, String value) {
+    public boolean remove(String key, WebSocketSession wsSession) {
         boolean removed = false;
-        if (multimap.containsEntry(key, value)) {
-            removed = multimap.remove(key, value);
+        if (multimap.containsEntry(key, wsSession)) {
+            removed = multimap.remove(key, wsSession);
         }
         return removed;
     }
-    public boolean removeUser(String key, String value) {
+    public boolean removeUser(String key, WebSocketSession wsSession) {
         boolean removed = false;
-        if (multimap.containsEntry(key, value)) {
-            removed = multimap.remove(key, value);
+        if (multimap.containsEntry(key, wsSession)) {
+            removed = multimap.remove(key, wsSession);
         }
         return removed;
     }
@@ -58,7 +59,15 @@ public class WsUserMap {
     }
     public void showList() {
         for (Map.Entry s : multimap.entries()) {
-            System.out.println("-- key: " + s.getKey() + " -- value: " + s.getValue());
+            System.out.println("-- key: " + s.getKey() + " -- wsSession: " + ((WebSocketSession)(s.getValue())).getPrincipal().getName());
+        }
+    }
+    public void deleteClosed() {
+        WebSocketSession session;
+        for (Map.Entry s : multimap.entries()) {
+            session = (WebSocketSession) s.getValue();
+            if(!(session.isOpen()))
+                multimap.remove(s.getKey(), s.getValue());
         }
     }
 }

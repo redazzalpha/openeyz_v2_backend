@@ -59,6 +59,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.socket.WebSocketSession;
 
 /**
  *
@@ -735,15 +736,21 @@ public class MainController {
     }
     // websocket server send signal to all connected users
     private void wsSendSignalToAll(String signal) {
+        System.out.println("-------------send to all signal : " + signal );
+        wsUserMap.showList();
         for (Map.Entry entry : wsUserMap.getMap().entries()) {
-            simpMessagingTemplate.convertAndSendToUser(entry.getValue().toString(), Define.WEBSOCKET_URL + "/signal", signal);
+            simpMessagingTemplate.convertAndSendToUser(((WebSocketSession)(entry.getValue())).getPrincipal().getName(), Define.WEBSOCKET_URL + "/signal", signal);
         }
     }
     // websocket server send signal to specific user
     private void wsSendSignalTo(String signal, String username) {
+        System.out.println("-------------send to signal : " + signal );
+        wsUserMap.showList();
         if (wsUserMap.contains(username)) {
-            for (String name : wsUserMap.getValues(username)) {
-                simpMessagingTemplate.convertAndSendToUser(name, Define.WEBSOCKET_URL + "/signal", signal);
+            System.out.println("*************************************************************************** username: " + username);
+            for (WebSocketSession session : wsUserMap.getValues(username)) {
+            System.out.println("*************************************************************************** session.getPrincipal().getName(): " + session.getPrincipal().getName());
+                simpMessagingTemplate.convertAndSendToUser(session.getPrincipal().getName(), Define.WEBSOCKET_URL + "/signal", signal);
             }
         }
     }
