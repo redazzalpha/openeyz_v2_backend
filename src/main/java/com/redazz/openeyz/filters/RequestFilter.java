@@ -47,9 +47,7 @@ public class RequestFilter implements Filter {
         catch (DataNotFoundException | ForbiddenException | NoUserFoundException | ExpiredJwtException | MalformedJwtException | IOException ex) {
             String exceptionClassName = ex.getClass().getSimpleName();
             
-            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + exceptionClassName);
             switch (exceptionClassName) {
-
                 case "DataNotFoundException" ->
                     res.sendError(400, ex.getMessage());
                 case "ExpiredJwtException" ->
@@ -63,7 +61,9 @@ public class RequestFilter implements Filter {
                 case "ForbiddenException" ->
                     res.sendError(403, ex.getMessage());
                 case "SizeLimitExceededException" ->
-                    res.sendError(500, "content exceeds max size 20mb");
+                    res.sendError(500, "content exceeds max size 40mb");
+                case "MaxUploadSizeExceededException" ->
+                    res.sendError(500, "content exceeds max size 40mb");
                 default ->
                     res.sendError(500, ex.getMessage());
             }
