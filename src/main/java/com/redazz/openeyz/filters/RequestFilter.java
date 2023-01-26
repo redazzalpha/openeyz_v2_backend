@@ -14,6 +14,7 @@ import com.redazz.openeyz.services.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import java.io.IOException;
+import javax.naming.SizeLimitExceededException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -60,6 +61,8 @@ public class RequestFilter implements Filter {
                     res.sendError(401, ex.getMessage());
                 case "ForbiddenException" ->
                     res.sendError(403, ex.getMessage());
+                case "SizeLimitExceededException" ->
+                    res.sendError(500, "content exceeds max size 20mb");
                 default ->
                     res.sendError(500, ex.getMessage());
             }
