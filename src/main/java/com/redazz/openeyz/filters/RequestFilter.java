@@ -46,6 +46,8 @@ public class RequestFilter implements Filter {
         }
         catch (DataNotFoundException | ForbiddenException | NoUserFoundException | ExpiredJwtException | MalformedJwtException | IOException ex) {
             String exceptionClassName = ex.getClass().getSimpleName();
+            
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + exceptionClassName);
             switch (exceptionClassName) {
 
                 case "DataNotFoundException" ->
