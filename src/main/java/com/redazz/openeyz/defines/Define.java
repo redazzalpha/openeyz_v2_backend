@@ -68,5 +68,6 @@ public class Define {
     
     public static final int REGISTER_NUM_ARG = 4;
 
-    public static final int MULTIPART_UPLOAD_SIZE = 20000000;
+    public static final int MULTIPART_UPLOAD_SIZE = 10;
+//    public static final int MULTIPART_UPLOAD_SIZE = 20000000;
 }
